@@ -1,4 +1,4 @@
 [core]
     remote = hpc
 ['remote "hpc"']
-    url = ssh://gbardvc/zhome/fd/2/219569/MLOps/storage
+    url = ssh://gbardvc/${env:DVC_HPC_STORAGE_PATH}
