@@ -8,7 +8,7 @@ version = "0.0.1"
 description = "fake art detector model for classifying original art from ai generated one"
 authors = [
   { name = "Ioannis Bekiaris", email = "s250379@dtu.dk" },
-  { name = "Levente Buzga", email = "your@email.com" },
+  { name = "Levente Buzga", email = "s242964@dtu.dk" },
   { name = "Eric", email = "your@email.com" },
   { name = "Tamas", email = "your@email.com" },
 ]
@@ -55,6 +55,7 @@ explicit = true
 
 [tool.ruff]
 line-length = 120
+lint.select = ["I"]
 
 [tool.coverage.run]
 omit = ["tests/*"]
