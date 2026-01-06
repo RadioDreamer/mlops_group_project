@@ -51,3 +51,17 @@ def build_docs(ctx: Context) -> None:
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
+
+# Git commands
+@task(help={'message': "The commit message"})
+def push(ctx : Context, message: str="chore: empty commit") -> None:
+    """
+    Add all changes, commit, and push.
+    """
+    ctx.run("git add .")
+    ctx.run(f'git commit -m "{message}"')
+    branch = ctx.run("git rev-parse --abbrev-ref HEAD", hide=True).stdout.strip()
+    result = ctx.run(f"git push origin {branch}", warn=True)
+    if result.failed:
+        print(f"No upstream set for {branch}. Setting upstream...")
+        ctx.run(f"git push --set-upstream origin {branch}")
