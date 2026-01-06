@@ -1,4 +1,4 @@
 [core]
     remote = hpc
 ['remote "hpc"']
-    url = ssh://gbar1:MLOps/storage
+    url = ssh://gbar2:/MLOps/storage
