@@ -1,0 +1,3 @@
+# `fakeartdetector.api`
+
+::: fakeartdetector.api

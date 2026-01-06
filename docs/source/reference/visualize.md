@@ -1,0 +1,3 @@
+# `fakeartdetector.visualize`
+
+::: fakeartdetector.visualize

@@ -1,12 +1,16 @@
-Generating the docs
-----------
+## Generating the docs
 
 Use [mkdocs](http://www.mkdocs.org/) structure to update the documentation.
 
-Build locally with:
+Build locally with (recommended):
 
-    mkdocs build
+    uv run invoke build-docs
 
-Serve locally with:
+Serve locally with (recommended):
 
-    mkdocs serve
+    uv run invoke serve-docs
+
+If you want to call MkDocs directly, use the config file in this folder:
+
+    uv run mkdocs build --config-file docs/mkdocs.yaml
+    uv run mkdocs serve --config-file docs/mkdocs.yaml

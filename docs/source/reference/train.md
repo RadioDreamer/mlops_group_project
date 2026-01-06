@@ -1,0 +1,3 @@
+# `fakeartdetector.train`
+
+::: fakeartdetector.train
