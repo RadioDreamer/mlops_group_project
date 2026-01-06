@@ -11,7 +11,7 @@ PYTHON_VERSION = "3.11"
 @task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
+    ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/processed", echo=True, pty=not WINDOWS)
 
 
 @task
@@ -52,9 +52,10 @@ def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
 
+
 # Git commands
-@task(help={'message': "The commit message"})
-def push(ctx : Context, message: str="chore: empty commit") -> None:
+@task(help={"message": "The commit message"})
+def push(ctx: Context, message: str = "chore: empty commit") -> None:
     """
     Add all changes, commit, and push.
     """

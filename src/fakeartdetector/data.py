@@ -9,8 +9,6 @@ from datasets import load_dataset
 from mpl_toolkits.axes_grid1 import ImageGrid
 from torchvision import transforms
 
-app = typer.Typer()
-
 
 def normalize(images: torch.Tensor) -> torch.Tensor:
     """Standard normalization for image tensors."""
@@ -18,8 +16,7 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     return (images - images.mean(dim=(0, 2, 3), keepdim=True)) / images.std(dim=(0, 2, 3), keepdim=True)
 
 
-@app.command()
-def preprocess_data(processed_dir: str = "data/processed") -> None:
+def preprocess_data(processed_dir: str) -> None:
     """
     Downloads CIFAKE from Hugging Face, transforms to tensors,
     and saves to processed_dir for DVC tracking.
@@ -87,4 +84,4 @@ def show_image_and_target(images: torch.Tensor, target: torch.Tensor) -> None:
 
 
 if __name__ == "__main__":
-    app()
+    typer.run(preprocess_data)
