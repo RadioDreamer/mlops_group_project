@@ -21,8 +21,10 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "datasets>=4.4.2",
     "fastapi==0.115.6",
     "torch==2.6.0",
+    "torchvision>=0.21.0",
     "typer==0.15.1",
     "uvicorn==0.34.0",
 ]
