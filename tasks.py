@@ -53,6 +53,21 @@ def serve_docs(ctx: Context) -> None:
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
 
 
+@task
+def make_req_txt(ctx: Context) -> None:
+    """Export dependencies to requirements.txt and requirements_dev.txt.
+
+    - requirements.txt: runtime dependencies (default group)
+    - requirements_dev.txt: runtime + dev dependencies
+    """
+    ctx.run("uv export --format requirements-txt --no-hashes -o requirements.txt", echo=True, pty=not WINDOWS)
+    ctx.run(
+        "uv export --format requirements-txt --no-hashes --group dev -o requirements_dev.txt",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
 # Git commands
 @task(help={"message": "The commit message"})
 def push(ctx: Context, message: str = "chore: empty commit") -> None:
