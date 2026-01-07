@@ -58,7 +58,7 @@ def preprocess_data(processed_dir: str) -> None:
 
 
 def cifake(
-    processed_dir: str = "data/processed",
+    """Return train and test TensorDatasets for CIFAKE."""
 ) -> tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
     """Return train and test dataloaders for CIFAKE."""
     path = Path(processed_dir)
