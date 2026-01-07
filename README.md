@@ -8,7 +8,7 @@
 * [ ] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6) Tamas
 * [x] Remember to fill out the `requirements.txt` and `requirements_dev.txt` file with whatever dependencies that you
     are using (M2+M6) Tamas (Ioannis: i added an invoke script that makes the requirements.txt and a requirements_dev.txt)
-* [ ] Remember to comply with good coding practices (`pep8`) while doing the project (M7) Levi
+* [x] Remember to comply with good coding practices (`pep8`) while doing the project (M7) Levi
 * [ ] Do a bit of code typing and remember to document essential parts of your code (M7) Levi
 * [ ] Setup version control for your data or part of your data (M8) Levi
 * [ ] Add command line interfaces and project commands to your code where it makes sense (M9) Levi
