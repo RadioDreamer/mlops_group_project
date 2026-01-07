@@ -1,11 +1,8 @@
-from fakeartdetector.data import MyDataset
-from fakeartdetector.model import Model
-
-
 def train():
-    dataset = MyDataset("data/raw")
-    model = Model()
+    # dataset = MyDataset("data/raw")
+    # model = Model()
     # add rest of your training code here
+    pass
 
 
 if __name__ == "__main__":
