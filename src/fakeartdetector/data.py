@@ -57,13 +57,28 @@ def preprocess_data(processed_dir: str) -> None:
     typer.echo(f"Finished! Data saved in {processed_dir}")
 
 
-def cifake() -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
+def cifake(processed_dir: str = "data/processed") -> tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
     """Return train and test dataloaders for CIFAKE."""
-    train_images = torch.load("data/processed/train_images.pt", weights_only=True)
-    train_target = torch.load("data/processed/train_target.pt", weights_only=True)
-    test_images = torch.load("data/processed/test_images.pt", weights_only=True)
-    test_target = torch.load("data/processed/test_target.pt", weights_only=True)
+    path = Path(processed_dir)
 
+    required_files = {  
+        "train_images": processed_dir / "train_images.pt",  
+        "train_target": processed_dir / "train_target.pt",  
+        "test_images": processed_dir / "test_images.pt",  
+        "test_target": processed_dir / "test_target.pt",  
+    }
+    for name, path in required_files.items():  
+        if not path.is_file():  
+            raise FileNotFoundError(  
+                f"Preprocessed data file '{path}' not found. "  
+                "Please run preprocess_data(processed_dir='data/processed') before calling cifake().")
+
+    train_images = torch.load(path / "train_images.pt", weights_only=True)
+    train_target = torch.load(path / "train_target.pt", weights_only=True)
+    test_images = torch.load(path / "test_images.pt", weights_only=True)
+    test_target = torch.load(path / "test_target.pt", weights_only=True)
+
+ 
     train_set = torch.utils.data.TensorDataset(train_images, train_target)
     test_set = torch.utils.data.TensorDataset(test_images, test_target)
     return train_set, test_set
