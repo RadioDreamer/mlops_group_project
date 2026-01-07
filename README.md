@@ -1,4 +1,4 @@
-# AI Art Detector 
+# AI Art Detector
 
 ## Goal of the project
 The rapid development of AI generated images has created an environment where it has become incredibly difficult to tell apart real images from synthesized ones. The goal of our project is to create a robust, End-to-End pipeline for determining whether images are 'Real' or 'AI generated'. We have decided to use this project as the topic is relevant and the output of the model is easily interpretable for images. Finally, it allows us to play around with most of the concepts and technologies outlined in the course.
