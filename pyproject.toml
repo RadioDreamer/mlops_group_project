@@ -28,6 +28,7 @@ dependencies = [
     "matplotlib>=3.10.8",
     "mkdocs-material>=9.4.6",
     "pytorch-lightning>=2.6.0",
+    "scikit-learn>=1.8.0",
     "torch==2.6.0",
     "torchvision>=0.21.0",
     "typer==0.15.1",
