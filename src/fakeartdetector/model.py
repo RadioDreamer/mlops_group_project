@@ -11,18 +11,18 @@ class Model(nn.Module):
         self.features = nn.Sequential(
             # Block 1: 3 -> 32 channels
             nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
             nn.BatchNorm2d(32),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),  # 32x32 -> 16x16
             # Block 2: 32 -> 64 channels
             nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
             nn.BatchNorm2d(64),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),  # 16x16 -> 8x8
             # Block 3: 64 -> 128 channels
             nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
             nn.BatchNorm2d(128),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),  # 8x8 -> 4x4
         )
 
