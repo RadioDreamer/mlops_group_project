@@ -28,6 +28,12 @@ def test(ctx: Context) -> None:
 
 
 @task
+def evaluate(ctx: Context) -> None:
+    """Evaluate saved model data."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/evaluate.py models/model.pth", echo=True, pty=not WINDOWS)
+
+
+@task
 def docker_build(ctx: Context, progress: str = "plain") -> None:
     """Build docker images."""
     ctx.run(
@@ -38,6 +44,28 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
     ctx.run(
         f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}", echo=True, pty=not WINDOWS
     )
+
+
+# data version commands
+@task
+def dvc(ctx, folder="data", message="Add new data"):
+    ctx.run(f"dvc add {folder}")
+    ctx.run(f"git add {folder}.dvc .gitignore")
+    ctx.run(f"git commit -m '{message}'")
+    ctx.run("git push")
+    ctx.run("dvc push")
+
+
+@task
+def pull_data(ctx):
+    ctx.run("dvc pull")
+
+
+# simple visualization command
+@task
+def visualize(ctx: Context) -> None:
+    """Visualize the saved model preds."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/visualize.py models/model.pth", echo=True, pty=not WINDOWS)
 
 
 # Documentation commands
