@@ -79,13 +79,14 @@ def cifake(
                 "Please run preprocess_data(processed_dir='data/processed') before calling cifake()."
             )
 
-    train_images = torch.load(required_files["train_images.pt"], weights_only=True)
-    train_target = torch.load(required_files["train_target.pt"], weights_only=True)
-    test_images = torch.load(required_files["test_images.pt"], weights_only=True)
-    test_target = torch.load(required_files["test_target.pt"], weights_only=True)
+    train_images = torch.load(required_files["train_images"], weights_only=True)
+    train_target = torch.load(required_files["train_target"], weights_only=True)
+    test_images = torch.load(required_files["test_images"], weights_only=True)
+    test_target = torch.load(required_files["test_target"], weights_only=True)
 
     train_set = torch.utils.data.TensorDataset(train_images, train_target)
     test_set = torch.utils.data.TensorDataset(test_images, test_target)
+
     return train_set, test_set
 
 
