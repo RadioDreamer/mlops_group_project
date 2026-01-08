@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from torch import cuda, device, nn, optim, save
+from torch import cuda, device, optim, save
 from torch.backends import mps
 from torch.utils.data import DataLoader
 
@@ -11,6 +11,7 @@ DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() e
 
 def train(lr: float = 1e-3, epochs: int = 5, batch_size: int = 32) -> None:
     """Train a model on the CIFAKE dataset"""
+
     # TODO: the prints bellow will become loguru aftewards
     print("Training day and night")
     print(f"lr: {lr}, epochs: {epochs}, batch_size: {batch_size}")
@@ -21,7 +22,6 @@ def train(lr: float = 1e-3, epochs: int = 5, batch_size: int = 32) -> None:
     train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
     # test_loader = DataLoader(test_set, batch_size=128, shuffle=False)
 
-    criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     # Training loop
@@ -30,14 +30,20 @@ def train(lr: float = 1e-3, epochs: int = 5, batch_size: int = 32) -> None:
         model.train()
         for i, (img, target) in enumerate(train_loader):
             img, target = img.to(DEVICE), target.to(DEVICE)
+
             optimizer.zero_grad()
-            y_pred = model(img)
-            loss = criterion(y_pred, target)
+
+            logits = model(img).squeeze(1)
+            loss = model.criterium(logits, target.float())
+
             loss.backward()
             optimizer.step()
+
             statistics["train_loss"].append(loss.item())
 
-            accuracy = (y_pred.argmax(dim=1) == target).float().mean().item()
+            preds = (logits > 0).long()
+            accuracy = (preds == target.long()).float().mean().item()
+
             statistics["train_accuracy"].append(accuracy)
 
             if i % 100 == 0:
