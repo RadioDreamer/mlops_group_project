@@ -1,0 +1,3 @@
+# `fakeartdetector.evaluate`
+
+::: fakeartdetector.evaluate

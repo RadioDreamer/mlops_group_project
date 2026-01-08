@@ -1,0 +1,3 @@
+# `fakeartdetector.model`
+
+::: fakeartdetector.model
