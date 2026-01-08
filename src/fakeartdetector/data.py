@@ -16,7 +16,7 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     return (images - images.mean(dim=(0, 2, 3), keepdim=True)) / images.std(dim=(0, 2, 3), keepdim=True)
 
 
-def preprocess_data(processed_dir: str) -> None:
+def preprocess_data(processed_dir: str ="data/processed" ) -> None:
     """
     Downloads CIFAKE from Hugging Face, transforms to tensors,
     and saves to processed_dir for DVC tracking.
