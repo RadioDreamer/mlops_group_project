@@ -16,6 +16,7 @@ def evaluate(model_checkpoint: str) -> None:
 
     model = FakeArtClassifier().to(DEVICE)
     model.load_state_dict(load(model_checkpoint))
+    model.eval()
 
     _, test_set = cifake()
     test_dataloader = DataLoader(test_set, batch_size=32)
