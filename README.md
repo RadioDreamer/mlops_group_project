@@ -5,7 +5,7 @@
 * [x] Create a dedicated environment for you project to keep track of your packages (M2) Ioannis
 * [x] Create the initial file structure using cookiecutter with an appropriate template (M6) Ioannis
 * [x] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6) Tamas (Ioannis: did it)
-* [x] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6) Tamas (Ioannis helped finish everything)
+* [x] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6) Tamas (Ioannis helped finish everything, there were some mistakes)
 * [x] Remember to fill out the `requirements.txt` and `requirements_dev.txt` file with whatever dependencies that you
     are using (M2+M6) Tamas (Ioannis: i added an invoke script that makes the requirements.txt and a requirements_dev.txt)
 * [x] Remember to comply with good coding practices (`pep8`) while doing the project (M7) Levi
@@ -20,7 +20,7 @@
 * [ ] Use logging to log important events in your code (M14) Ioannis
 * [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14) Eric
 * [ ] Consider running a hyperparameter optimization sweep (M14) Levi
-* [ ] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15) Ioannis
+* [x] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15) Ioannis
 
 ### Week 2
 
