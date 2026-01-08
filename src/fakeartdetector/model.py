@@ -23,7 +23,10 @@ class FakeArtClassifier(LightningModule):
             - Flatten (128 × 4 × 4 = 2048)
             - Linear(2048 → 256) + LeakyReLU + Dropout(0.3)
             - Linear(256 → 128) + LeakyReLU
+
+        - Head:
             - Linear(128 → 1)
+
 
         - Output:
             - Single logit for binary classification (e.g., Real vs Fake)
@@ -70,12 +73,13 @@ class FakeArtClassifier(LightningModule):
             nn.Dropout(p=0.3),
             nn.Linear(256, 128),
             nn.LeakyReLU(),
-            nn.Linear(128, 1),  # 2 classes: Real vs Fake
         )
+        self.head = nn.Linear(128, 1)  # 2 classes: Real vs Fake
+
         self.criterium = nn.BCEWithLogitsLoss()
 
     def forward(self, x: Tensor) -> Tensor:
-        return self.classifier(self.backbone(x))
+        return self.head(self.classifier(self.backbone(x)))
 
     def training_step(self, batch, batch_idx):
         data, target = batch
