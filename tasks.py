@@ -11,7 +11,7 @@ PYTHON_VERSION = "3.11"
 @task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
+    ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/processed", echo=True, pty=not WINDOWS)
 
 
 @task
@@ -51,6 +51,21 @@ def build_docs(ctx: Context) -> None:
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("uv run mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
+
+
+@task
+def make_req_txt(ctx: Context) -> None:
+    """Export dependencies to requirements.txt and requirements_dev.txt.
+
+    - requirements.txt: runtime dependencies (default group)
+    - requirements_dev.txt: runtime + dev dependencies
+    """
+    ctx.run("uv export --format requirements-txt --no-hashes -o requirements.txt", echo=True, pty=not WINDOWS)
+    ctx.run(
+        "uv export --format requirements-txt --no-hashes --group dev -o requirements_dev.txt",
+        echo=True,
+        pty=not WINDOWS,
+    )
 
 
 # Git commands

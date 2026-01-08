@@ -1,0 +1,4 @@
+[core]
+    remote = hpc
+['remote "hpc"']
+    url = ssh://gbardvc/${env:DVC_HPC_STORAGE_PATH}

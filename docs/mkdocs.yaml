@@ -8,12 +8,28 @@ theme:
   features:
     - content.code.copy
     - content.code.annotate
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
 
 plugins:
   - search
   - mkdocstrings:
       handlers:
         python:
+          paths: [../src]
           options:
             show_root_heading: true
             separate_signature: true
@@ -21,3 +37,12 @@ plugins:
 
 nav:
   - Home: index.md
+  - Getting Started: getting-started.md
+  - Workflows: workflows.md
+  - API Reference:
+      - fakeartdetector.data: reference/data.md
+      - fakeartdetector.model: reference/model.md
+      - fakeartdetector.train: reference/train.md
+      - fakeartdetector.api: reference/api.md
+      - fakeartdetector.evaluate: reference/evaluate.md
+      - fakeartdetector.visualize: reference/visualize.md
