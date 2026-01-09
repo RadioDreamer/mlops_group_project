@@ -11,11 +11,11 @@
 * [x] Remember to comply with good coding practices (`pep8`) while doing the project (M7) Levi
 * [ ] Do a bit of code typing and remember to document essential parts of your code (M7) Levi
 * [ ] Setup version control for your data or part of your data (M8) Levi
-* [ ] Add command line interfaces and project commands to your code where it makes sense (M9) Levi
+* [x] Add command line interfaces and project commands to your code where it makes sense (M9) Levi
 * [ ] Construct one or multiple docker files for your code (M10) Eric
 * [ ] Build the docker files locally and make sure they work as intended (M10) Eric
-* [ ] Write one or multiple configurations files for your experiments (M11) Levi
-* [ ] Used Hydra to load the configurations and manage your hyperparameters (M11) Levi
+* [x] Write one or multiple configurations files for your experiments (M11) Levi
+* [x] Used Hydra to load the configurations and manage your hyperparameters (M11) Levi
 * [ ] Use profiling to optimize your code (M12) Tamas
 * [ ] Use logging to log important events in your code (M14) Ioannis
 * [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14) Eric
