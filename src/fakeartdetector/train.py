@@ -34,12 +34,13 @@ def train(
     batch_size: Annotated[int, typer.Option(help="Override batch size")] = None,
     config_name: Annotated[str, typer.Option(help="Config file name")] = "default_config.yaml",
     print_config: Annotated[bool, typer.Option(help="Print config")] = False,
+    experiment: Annotated[str, typer.Option(help="Choose experimental config")] = "exp1",
 ) -> None:
     """
     Train model using Hydra configuration + CLI overrides.
     """
     with hydra.initialize(version_base=None, config_path=str(CONFIG_DIR)):
-        cfg = hydra.compose(config_name=config_name)
+        cfg = hydra.compose(config_name=config_name, overrides=[f"experiment={experiment}"])
 
     if lr is not None:
         cfg.experiment.hyperparameters.lr = lr

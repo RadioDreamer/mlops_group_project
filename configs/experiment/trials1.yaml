@@ -1,0 +1,13 @@
+hyperparameters:
+    dropOut: 0.53
+    batch_size: 2
+    lr: 1e-8
+    epochs: 20
+    seed: 420
+
+dataset:
+    path: 'data/processed'
+    noise_level: 0.05
+
+logging:
+    path: 'data/logs'
