@@ -67,7 +67,7 @@ def train(
     logger.info("Training day and night")
     logger.info(f"lr: {hparams['lr']}, epochs: {hparams['epochs']}, batch_size: {hparams['batch_size']}")
 
-    model = FakeArtClassifier(lr=hparams["lr"], dropOut=hparams["dropOut"]).to(DEVICE)
+    model = FakeArtClassifier(lr=hparams["lr"], dropout=hparams["dropOut"]).to(DEVICE)
     logger.info(f"Loaded Model onto memory: \n{model}")
 
     train_set, _ = cifake()
