@@ -14,8 +14,23 @@ def preprocess_data(ctx: Context) -> None:
     ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/processed", echo=True, pty=not WINDOWS)
 
 
-@task(help={"lr": "Override learning rate", "epochs": "Number of epochs"})
-def train(ctx, lr: int | None = None, epochs: int | None = None, batch_size: int | None = None):
+@task(
+    help={
+        "lr": "Override learning rate",
+        "epochs": "Number of epochs",
+        "batch_size": "number of data to be loaded as a group",
+        "experiment": "configuration file options",
+    }
+)
+def train(
+    ctx,
+    lr: int | None = None,
+    epochs: int | None = None,
+    batch_size: int | None = None,
+    experiment: str | None = None,
+    dataset: str | None = None,
+    logging: str | None = None,
+):
     """
     Run the training script using 'uv run' for environment isolation.
     """
@@ -28,6 +43,12 @@ def train(ctx, lr: int | None = None, epochs: int | None = None, batch_size: int
         cmd += f" --epochs {epochs}"
     if batch_size:
         cmd += f" --batch-size {epochs}"
+    if experiment:
+        cmd += f" --experiment {experiment}"
+    if dataset:
+        cmd += f" --dataset {dataset}"
+    if logging:
+        cmd += f" --logging {logging}"
 
     ctx.run(
         cmd,

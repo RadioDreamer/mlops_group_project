@@ -1,6 +1,8 @@
 defaults:
     - _self_
     - experiment: exp1
+    - dataset: base
+    - logging: base_log
 
 hydra:
     job:
