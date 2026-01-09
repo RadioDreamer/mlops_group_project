@@ -1,3 +1,6 @@
 dataset:
     path: 'data/processed'
     noise_level: 0.05
+
+savedTo:
+    path: 'models/base_model.pth'

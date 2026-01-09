@@ -44,7 +44,7 @@ def train(
     with hydra.initialize(version_base=None, config_path=str(CONFIG_DIR)):
         cfg = hydra.compose(
             config_name=config_name,
-            overrides=[f"experiment={experiment}", f"--dataset {dataset}", f"--logging {logging}"],
+            overrides=[f"experiment={experiment}", f"dataset={dataset}", f"logging={logging}"],
         )
 
     if lr is not None:
@@ -56,7 +56,7 @@ def train(
 
     # the line bellow only works with the @hydra.main decorator
     # hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    hydra_path = Path(cfg.experiment.logging.path)
+    hydra_path = Path(cfg.logging.logging.path)
     logger.add(os.path.join(hydra_path, "train_logger.log"), rotation="150 MB")
 
     logger.info(f"Loading model with configuration: \n {OmegaConf.to_yaml(cfg)}")
@@ -82,6 +82,9 @@ def train(
     # Training loop
     statistics = {"train_loss": [], "train_accuracy": []}
     model.train()
+    logger.info(50 * "=")
+    logger.info("Strarting training")
+    logger.info(50 * "=")
     for epoch in range(hparams["epochs"]):
         for i, (img, target) in enumerate(train_loader):
             img, target = img.to(DEVICE), target.to(DEVICE)
@@ -104,8 +107,10 @@ def train(
             if i % 100 == 0:
                 logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
+    logger.info(50 * "=")
     logger.info("Training complete")
-    save(model.state_dict(), "models/model.pth")
+    logger.info(50 * "=")
+    save(model.state_dict(), cfg.dataset.savedTo.path)
     logger.info("Saved model")
 
     # make a nice statistic plot
