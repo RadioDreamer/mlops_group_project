@@ -1,10 +1,12 @@
 # Workflows
 
+This page collects the common end-to-end commands for running the project locally.
+
 ## Data preprocessing
 
-The data preprocessing script downloads the CIFAKE dataset from Hugging Face, converts images to tensors, and writes them into `data/processed/` as `.pt` files.
+Preprocessing downloads CIFAKE from Hugging Face, converts images to tensors, and saves them to `data/processed/`.
 
-Run via Invoke:
+Run via Invoke (recommended):
 
 ```bash
 uv run invoke preprocess-data
@@ -19,32 +21,64 @@ Outputs:
 
 ## Training
 
-Training is currently scaffolded in `src/fakeartdetector/train.py`. The `invoke train` task runs that file:
+Training loads the processed tensors, trains `FakeArtClassifier`, saves a checkpoint, and writes a simple training figure.
+
+Run via Invoke:
 
 ```bash
 uv run invoke train
 ```
 
-If you extend training, this is the place to document:
+Outputs:
 
-- model architecture
-- config/hyperparameters
-- metrics + evaluation
-- where artifacts are saved (e.g. `models/`)
+- `models/model.pth`
+- `reports/figures/training_statistics.png`
+
+## Evaluation
+
+Evaluation loads `models/model.pth` (a PyTorch `state_dict`), runs inference on the CIFAKE test split, and prints test accuracy.
+
+Run via Invoke:
+
+```bash
+uv run invoke evaluate
+```
+
+## Visualization
+
+Visualization computes embeddings from the trained model on the CIFAKE test split, reduces them to 2D (t-SNE), and saves a scatter plot.
+
+Run via Invoke:
+
+```bash
+uv run invoke visualize
+```
+
+Outputs (default):
+
+- `reports/figures/embeddings.png`
+
+## Tests
+
+Run the test suite with coverage:
+
+```bash
+uv run invoke test
+```
 
 ## Docker images
 
-Build the Docker images:
+Build the Docker images via Invoke:
+
+```bash
+uv run invoke docker-build
+```
+
+Or run Docker directly:
 
 ```bash
 docker build -t train:latest . -f dockerfiles/train.dockerfile
 docker build -t api:latest . -f dockerfiles/api.dockerfile
-```
-
-Or via Invoke:
-
-```bash
-uv run invoke docker-build
 ```
 
 ## Docs
