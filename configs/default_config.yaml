@@ -1,0 +1,7 @@
+defaults:
+  - _self_
+  - experiment: exp1
+
+hydra:
+  job:
+    chdir: false

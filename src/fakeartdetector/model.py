@@ -44,8 +44,12 @@ class FakeArtClassifier(LightningModule):
         - Please pass the output with (torch.sigmoid(model(data)) >0.5).long()
     """
 
-    def __init__(self) -> None:
+    def __init__(self, lr=0.005, dropOut=0.1) -> None:
         super().__init__()
+
+        self.dropOut = dropOut
+        self.lr = lr
+
         self.backbone = nn.Sequential(
             # Block 1: 3 -> 32 channels
             nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),
@@ -70,7 +74,7 @@ class FakeArtClassifier(LightningModule):
             nn.Flatten(),
             nn.Linear(2048, 256),
             nn.LeakyReLU(),
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=self.dropOut),
             nn.Linear(256, 128),
             nn.LeakyReLU(),
         )
@@ -89,7 +93,7 @@ class FakeArtClassifier(LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=1e-2)
+        return optim.Adam(self.parameters(), lr=self.lr)
 
 
 if __name__ == "__main__":

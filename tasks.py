@@ -15,7 +15,7 @@ def preprocess_data(ctx: Context) -> None:
 
 
 @task(help={"lr": "Override learning rate", "epochs": "Number of epochs"})
-def train(c, lr=None, epochs=None):
+def train(ctx, lr: int | None = None, epochs: int | None = None, batch_size: int | None = None):
     """
     Run the training script using 'uv run' for environment isolation.
     """
@@ -26,9 +26,14 @@ def train(c, lr=None, epochs=None):
         cmd += f" --lr {lr}"
     if epochs:
         cmd += f" --epochs {epochs}"
+    if batch_size:
+        cmd += f" --batch-size {epochs}"
 
-    print(f"Executing: {cmd}")
-    c.run(cmd)
+    ctx.run(
+        cmd,
+        echo=True,
+        pty=not WINDOWS,
+    )
 
 
 @task
