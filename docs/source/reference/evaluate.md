@@ -22,7 +22,17 @@ uv run invoke evaluate
 Or run the module directly:
 
 ```bash
-uv run src/fakeartdetector/evaluate.py models/model.pth
+uv run python -m fakeartdetector.evaluate --help
+```
+
+Each evaluation run writes a Loguru log file into Hydra's per-run output folder:
+
+- `outputs/.../evaluate.log`
+
+By default, evaluation uses `cfg.evaluate.model_checkpoint` (which defaults to `cfg.dataset.savedTo.path`). You can override it:
+
+```bash
+uv run python -m fakeartdetector.evaluate --model-checkpoint models/base_model.pth
 ```
 
 ## How predictions are computed
@@ -37,4 +47,4 @@ Accuracy is computed as the fraction of correct predictions over the full test s
 
 ## API reference
 
-::: fakeartdetector.evaluate.evaluate
+::: fakeartdetector.evaluate.evaluate_checkpoint

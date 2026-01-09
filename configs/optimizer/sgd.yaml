@@ -1,0 +1,6 @@
+# Hydra-instantiated optimizer
+_target_: torch.optim.SGD
+lr: ${experiment.hyperparameters.lr}
+momentum: 0.9
+weight_decay: 0.0
+nesterov: true

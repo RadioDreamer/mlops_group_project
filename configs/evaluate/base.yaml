@@ -1,0 +1,5 @@
+# Evaluation settings
+# By default, evaluate the model checkpoint produced by training.
+model_checkpoint: ${dataset.savedTo.path}
+batch_size: 32
+threshold: 0.5

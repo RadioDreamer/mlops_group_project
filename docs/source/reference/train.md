@@ -1,12 +1,12 @@
-# `fakeartdetector.train`
+# Training
 
-This module trains the CNN on the processed CIFAKE dataset and writes a checkpoint and a simple training plot.
+Training is driven by Hydra configs and exposed via an Invoke task + Typer CLI.
 
-## What this module does
+## What training does
 
 - Loads the processed CIFAKE tensors via `cifake()`
 - Trains `FakeArtClassifier` using Adam and `BCEWithLogitsLoss`
-- Saves the trained model `state_dict` to `models/model.pth`
+- Saves the trained model `state_dict` to the configured `cfg.dataset.savedTo.path`
 - Saves a training statistics figure to `reports/figures/training_statistics.png`
 
 ## Train the model
@@ -17,28 +17,50 @@ Run via the Invoke task (recommended):
 uv run invoke train
 ```
 
+Show available training options:
+
+```bash
+uv run invoke train --help
+```
+
+Example: switch optimizer from config:
+
+```bash
+uv run invoke train --optimizer sgd
+```
+
+List available config group choices:
+
+```bash
+uv run invoke list-configs
+```
+
 Or run the module directly:
 
 ```bash
-uv run src/fakeartdetector/train.py
+uv run python -m fakeartdetector.train --help
 ```
 
 ## Outputs
 
 After training, the script writes:
 
-- `models/model.pth` (PyTorch `state_dict` checkpoint)
+- Model checkpoint at `cfg.dataset.savedTo.path`
 - `reports/figures/training_statistics.png` (loss and accuracy curves)
+
+Additionally, each run writes a Loguru training log into Hydra's per-run output folder:
+
+- `outputs/.../train_hydra.log`
 
 ## Training details
 
 - Device selection: CUDA → MPS → CPU
-- Optimizer: Adam
+- Optimizer: configurable via `cfg.optimizer` (default: Adam)
 - Loss: `BCEWithLogitsLoss`
 - Predictions for accuracy: `preds = (logits > 0).long()` (equivalent to sigmoid threshold at 0.5)
 
-Note: the `train()` function signature accepts `lr`, `epochs`, and `batch_size`, but the current implementation uses a hard-coded dataloader batch size of 128.
+Note: Use `uv run invoke train --print-config` to print the resolved Hydra config used for the run.
 
 ## API reference
 
-::: fakeartdetector.train.train
+::: fakeartdetector.train.train_impl
