@@ -69,3 +69,6 @@ lint.select = ["I", "N", "E", "W", "F"]
 
 [tool.coverage.run]
 omit = ["tests/*"]
+
+[project.scripts]
+train = "fakeartdetector.train:main"

@@ -14,10 +14,21 @@ def preprocess_data(ctx: Context) -> None:
     ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/processed", echo=True, pty=not WINDOWS)
 
 
-@task
-def train(ctx: Context) -> None:
-    """Train model."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
+@task(help={"lr": "Override learning rate", "epochs": "Number of epochs"})
+def train(c, lr=None, epochs=None):
+    """
+    Run the training script using 'uv run' for environment isolation.
+    """
+    cmd = "uv run python src/fakeartdetector/train.py"
+
+    # Append flags only if provided (Typer/Hydra will handle the rest)
+    if lr:
+        cmd += f" --lr {lr}"
+    if epochs:
+        cmd += f" --epochs {epochs}"
+
+    print(f"Executing: {cmd}")
+    c.run(cmd)
 
 
 @task
