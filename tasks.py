@@ -73,7 +73,7 @@ def train(
         print(f"Error: Invalid precision '{precision}'")
         print(f"Valid options: {', '.join(VALID_PRECISIONS)}")
         return
-    
+
     cmd = f"uv run python -m {PROJECT_NAME}.train"
 
     # Append flags only if provided (Typer/Hydra will handle the rest)
@@ -151,7 +151,7 @@ def list_precisions(ctx: Context) -> None:
 )
 def tensorboard(ctx: Context, logdir: str = "outputs", port: int = 6006) -> None:
     """Start TensorBoard to view training metrics and profiler traces.
-    
+
     Examples:
         uv run invoke tensorboard
         uv run invoke tensorboard --logdir outputs/2026-01-10/14-31-25/tensorboard

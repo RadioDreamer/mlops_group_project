@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 from pathlib import Path
 from typing import Annotated
 
@@ -8,9 +8,9 @@ import pytorch_lightning as pl
 import typer
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
-from pytorch_lightning.profilers import AdvancedProfiler, SimpleProfiler, PyTorchProfiler
+from pytorch_lightning.profilers import AdvancedProfiler, PyTorchProfiler, SimpleProfiler
 from torch import save
 from torch.utils.data import DataLoader
 
@@ -31,7 +31,6 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     # set up the logging from the hydra output dir
     output_dir = get_hydra_output_dir()
     log_path = configure_loguru_file(output_dir, filename="train_hydra.log", rotation="150 MB")
-    model_checkpoint_path = cfg.evaluate.model_checkpoint
 
     # we can print the config if we want to
     if print_config:
@@ -46,7 +45,12 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     pl.seed_everything(int(hparams["seed"]), workers=True)
 
     logger.info("Training day and night")
-    logger.info(f"lr: {hparams['lr']}, epochs: {hparams['epochs']}, batch_size: {hparams['batch_size']}, precision: {hparams.get('precision', '32')}")
+    logger.info(
+        f"lr: {hparams['lr']}, "
+        f"epochs: {hparams['epochs']}, "
+        f"batch_size: {hparams['batch_size']}, "
+        f"precision: {hparams.get('precision', '32')}"
+    )
 
     # Set up the LightningModule (Lightning will move it to the right device).
     model = FakeArtClassifier(lr=hparams["lr"], dropout=hparams["dropout"], optimizer_cfg=cfg.optimizer)
@@ -82,7 +86,7 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     csv_logger = CSVLogger(save_dir=str(output_dir), name="lightning")
     tb_logger = TensorBoardLogger(save_dir=str(output_dir), name="tensorboard")
     loggers = [csv_logger, tb_logger]
-    
+
     checkpoint_cb = ModelCheckpoint(
         dirpath=str(output_dir / "checkpoints"),
         monitor="val_loss",
@@ -92,9 +96,8 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     )
     early_stopping_callback = EarlyStopping(monitor="val_loss", patience=3, verbose=True, mode="min")
 
-
     precision = hparams.get("precision", "32")
-    
+
     # Build profiler from Hydra config
     profiler_cfg = getattr(cfg, "profiler", None)
     profiler = None
@@ -107,25 +110,27 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
             # Use Hydra output dir for profiler traces
             profiler_dir = output_dir / "profiler"
             profiler_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Handle schedule parameter (can be dict or None)
             schedule_cfg = profiler_cfg.get("schedule", None)
             schedule = None
             if schedule_cfg and isinstance(schedule_cfg, dict):
                 from torch.profiler import schedule as torch_schedule
+
                 schedule = torch_schedule(
                     wait=int(schedule_cfg.get("wait", 1)),
                     warmup=int(schedule_cfg.get("warmup", 1)),
                     active=int(schedule_cfg.get("active", 3)),
                     repeat=int(schedule_cfg.get("repeat", 2)),
                 )
-            
+
             # Set up TensorBoard trace if enabled
             on_trace_ready = None
             if profiler_cfg.get("tensorboard", False):
                 from torch.profiler import tensorboard_trace_handler
+
                 on_trace_ready = tensorboard_trace_handler(str(profiler_dir))
-            
+
             profiler = PyTorchProfiler(
                 dirpath=str(profiler_dir),
                 filename=str(profiler_cfg.get("filename", "trace")),
@@ -153,7 +158,7 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     logger.info("Starting Lightning training")
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     logger.info("Training complete")
-    
+
     # Save profiler output to file
     if profiler:
         if isinstance(profiler, AdvancedProfiler):
@@ -163,22 +168,22 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
             with open(profiler_file, "w") as f:
                 f.write(profiler_output)
             logger.info(f"Advanced profiler output saved to: {profiler_file}")
-            print("\n" + "="*80)
+            print("\n" + "=" * 80)
             print("PROFILER SUMMARY")
-            print("="*80)
+            print("=" * 80)
             print(profiler_output)
         elif isinstance(profiler, PyTorchProfiler):
             logger.info(f"Profiler traces saved to: {output_dir / 'profiler'}")
             if profiler_cfg.get("tensorboard", False):
                 logger.info(f"View in TensorBoard: tensorboard --logdir={output_dir / 'profiler'}")
             else:
-                logger.info(f"View trace.json in Chrome: chrome://tracing")
+                logger.info("View trace.json in Chrome: chrome://tracing")
 
     model_path = resolve_path(cfg.dataset.savedTo.path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
     save(model.state_dict(), str(model_path))
     logger.info(f"Saved model to: {model_path}")
-    
+
     # Log TensorBoard info
     tb_log_dir = output_dir / "tensorboard"
     logger.info(f"TensorBoard logs saved to: {tb_log_dir}")
