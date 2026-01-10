@@ -1,0 +1,5 @@
+# Hydra-instantiated optimizer
+# `params` is injected from code (model.parameters())
+_target_: torch.optim.Adam
+lr: ${experiment.hyperparameters.lr}
+weight_decay: 0.0

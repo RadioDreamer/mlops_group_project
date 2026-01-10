@@ -24,8 +24,20 @@ uv run invoke test
 # Preprocess/download dataset into data/processed/
 uv run invoke preprocess-data
 
-# Train (currently a placeholder)
+# Train
 uv run invoke train
+
+# See training options
+uv run invoke train --help
+
+# List available Hydra config groups
+uv run invoke list-configs
+
+# Evaluate (uses cfg.evaluate.model_checkpoint by default)
+uv run invoke evaluate
+
+# See evaluation options
+uv run invoke evaluate --help
 ```
 
 ## Build or serve the docs
