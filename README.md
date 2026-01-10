@@ -16,7 +16,7 @@
 * [x] Build the docker files locally and make sure they work as intended (M10) Eric
 * [x] Write one or multiple configurations files for your experiments (M11) Levi
 * [x] Used Hydra to load the configurations and manage your hyperparameters (M11) Levi
-* [ ] Use profiling to optimize your code (M12) Tamas
+* [x] Use profiling to optimize your code (M12) Tamas (Ioannis did it with pytorch lightning implementation)
 * [x] Use logging to log important events in your code (M14) Ioannis
 * [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14) Eric
 * [ ] Consider running a hyperparameter optimization sweep (M14) Levi
