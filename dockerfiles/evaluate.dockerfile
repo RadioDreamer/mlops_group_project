@@ -18,7 +18,6 @@ RUN uv sync --frozen --no-cache --no-install-project
 # copyng the rest of the project
 COPY src/ src/
 COPY models/ models/
-COPY reports/figures/ reports/figures
 COPY configs/ configs/
 COPY README.md README.md
 
@@ -27,4 +26,4 @@ RUN uv sync --frozen
 
 RUN uv run src/fakeartdetector/data.py data/processed
 # entrypoint setup
-ENTRYPOINT ["uv", "run", "python", "src/fakeartdetector/train.py"]
+ENTRYPOINT ["uv", "run", "python", "src/fakeartdetector/evaluate.py", "models/model.pth"]
