@@ -10,7 +10,7 @@ The core deep library used will be PyTorch. To extend its capabilities, we will 
 We will rely on the [CIFAKE](https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images) dataset a collection of 60k real images (from CIFAR-10) and 60k AI-generated images (created via Stable Diffusion 1.4). There are 100k images for training (50k per class) and 20k for testing (10k per class). We will be using the 32x32 version of this dataset. This choice will enable us to rapidly iterate on our pipeline and minimizes storage required on GCP. However, it is still powerful enough to test for potential drifting in the distribution. We will manage this dataset using DVC backed by a Google Cloud Storage bucket.
 
 ## Models
-Our initial model will be using a pretrained ResNet18 model. Additionally, once we feel comfortable that the pipeline is efficiently set up, we will explore Transformer based models (such as ViT). Once we found the best model, we will package it into a Docker container and deploy it with an inference API using FastAPI.
+Our initial model will be using a standard CNN model. Additionally, once we feel comfortable that the pipeline is efficiently set up, we will explore pretrained models such as ResNet18 and also transformer based models (such as ViT). Once we found the best model, we will package it into a Docker container and deploy it with an inference API using FastAPI.
 
 ## References
 1.  **CIFAR-10 Dataset:**
