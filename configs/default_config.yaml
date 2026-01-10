@@ -1,9 +1,11 @@
 defaults:
-    - _self_
-    - experiment: exp1
-    - dataset: base
-    - logging: base_log
+  - _self_
+  - experiment: base
+  - dataset: base
+  - logging: base
+  - optimizer: adam
+  - evaluate: base
 
 hydra:
-    job:
-        chdir: false
+  job:
+    chdir: false
