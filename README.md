@@ -22,6 +22,11 @@
 * [ ] Consider running a hyperparameter optimization sweep (M14) Levi
 * [x] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15) Ioannis
 
+### Week 1 Tech Debt
+* [ ] Ensure data is not loaded when its cached
+* [ ] Ensure train.dockerfile only loads the training data
+* [ ] Ensure evaluate.dockerfile only loads the test data
+
 ### Week 2
 
 * [ ] Write unit tests related to the data part of your code (M16)
