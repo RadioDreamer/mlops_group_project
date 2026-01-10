@@ -15,7 +15,8 @@ def evaluate(model_checkpoint: str) -> None:
     print(model_checkpoint)
 
     model = FakeArtClassifier().to(DEVICE)
-    model.load_state_dict(load(model_checkpoint))
+    state_dict = load(model_checkpoint, map_location=DEVICE)
+    model.load_state_dict(state_dict)
     model.eval()
 
     _, test_set = cifake()
