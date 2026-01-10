@@ -70,6 +70,7 @@ line-length = 120
 lint.select = ["I", "N", "E", "W", "F"]
 
 [tool.coverage.run]
+ignore_errors = true
 omit = ["tests/*"]
 
 [project.scripts]
