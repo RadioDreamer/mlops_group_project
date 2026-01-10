@@ -25,47 +25,100 @@ Our initial model will be using a standard CNN model. Additionally, once we feel
 
 The directory structure of the project looks like this:
 ```txt
+.
 ├── .github/                  # Github actions and dependabot
 │   ├── dependabot.yaml
 │   └── workflows/
 │       └── tests.yaml
-├── configs/                  # Configuration files
-├── data/                     # Data directory
 │   ├── processed
 │   └── raw
-├── dockerfiles/              # Dockerfiles
-│   ├── api.Dockerfile
-│   └── train.Dockerfile
+├── configs/                  # Configuration files
+│   ├── dataset
+│   │   └── base.yaml
+│   ├── default_config.yaml
+│   ├── evaluate
+│   │   └── base.yaml
+│   ├── experiment
+│   │   ├── base.yaml
+│   │   └── trials1.yaml
+│   ├── logging
+│   │   └── base.yaml
+│   └── optimizer
+│       ├── adam.yaml
+│       └── sgd.yaml
+├── data/                     # Data directory
+│   ├── logs
+│   │   └── train_logger.log
+│   ├── processed
+│   │   ├── test_images.pt
+│   │   ├── test_target.pt
+│   │   ├── train_images.pt
+│   │   └── train_target.pt
+│   └── raw
+├── data.dvc
+├── dockerfiles               # Docker Files
+│   ├── api.dockerfile
+│   └── train.dockerfile
 ├── docs/                     # Documentation
-│   ├── mkdocs.yml
+│   ├── build/
+│   ├── mkdocs.yaml
+│   ├── README.md
 │   └── source/
-│       └── index.md
-├── models/                   # Trained models
-├── notebooks/                # Jupyter notebooks
-├── reports/                  # Reports
-│   └── figures/
-├── src/                      # Source code
-│   ├── project_name/
-│   │   ├── __init__.py
-│   │   ├── api.py
-│   │   ├── data.py
-│   │   ├── evaluate.py
-│   │   ├── models.py
-│   │   ├── train.py
-│   │   └── visualize.py
-└── tests/                    # Tests
-│   ├── __init__.py
-│   ├── test_api.py
-│   ├── test_data.py
-│   └── test_model.py
-├── .gitignore
-├── .pre-commit-config.yaml
+│       ├── getting-started.md
+│       ├── index.md
+│       ├── reference
+│       │   ├── api.md
+│       │   ├── data.md
+│       │   ├── evaluate.md
+│       │   ├── model.md
+│       │   ├── train.md
+│       │   └── visualize.md
+│       └── workflows.md
+├── experiments
+│   └── config.yaml
 ├── LICENSE
+├── models/                   # Trained models
+│   └── base_model.pth
+├── notebooks
+├── outputs
+│   └── 2026-01-09
+│       ├── 18-35-44
+│       │   ├── train_hydra.log
+│       │   └── train.log
+│       ├── 18-37-54/
+│       ├                     # rest of the logs from hydra
+│
 ├── pyproject.toml            # Python project file
 ├── README.md                 # Project README
 ├── requirements.txt          # Project requirements
 ├── requirements_dev.txt      # Development requirements
-└── tasks.py                  # Project tasks
+├── reports/                  # Reports
+│   └── figures
+├── src/                      # Source code
+│   ├── fakeartdetector
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── data.py
+│   │   ├── evaluate.py
+│   │   ├── helpers.py
+│   │   ├── model.py
+│   │   ├── train.py
+│   │   └── visualize.py
+│   └── fakeartdetector.egg-info
+│       ├── dependency_links.txt
+│       ├── entry_points.txt
+│       ├── PKG-INFO
+│       ├── requires.txt
+│       ├── SOURCES.txt
+│       └── top_level.txt
+├── tests                     # Tests
+│   ├── __init__.py
+│   ├── test_api.py
+│   └── test_model.py
+├── tasks.py                  # Project tasks
+└── uv.lock
+
+50 directories, 129 files
 ```
 
 
