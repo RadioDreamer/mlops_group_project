@@ -1,7 +1,7 @@
 # starting base image (uv pre-installed)
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# installing system dependencies 
+# installing system dependencies
 RUN apt update && \
     apt install --no-install-recommends -y build-essential gcc && \
     apt clean && rm -rf /var/lib/apt/lists/*
@@ -18,7 +18,7 @@ RUN uv sync --frozen --no-cache --no-install-project
 # copyng the rest of the project
 COPY src/ src/
 COPY configs/ configs/
-COPY README.md README.md 
+COPY README.md README.md
 
 # syncing
 RUN uv sync --frozen
