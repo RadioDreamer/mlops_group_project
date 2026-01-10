@@ -70,8 +70,8 @@ line-length = 120
 lint.select = ["I", "N", "E", "W", "F"]
 
 [tool.coverage.run]
-ignore_errors = true
-omit = ["tests/*"]
+omit = ["tests/*",
+        "*_remote_module_non_scriptable.py"]
 
 [project.scripts]
 train = "fakeartdetector.train:main"
