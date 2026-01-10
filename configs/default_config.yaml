@@ -5,6 +5,7 @@ defaults:
   - logging: base
   - optimizer: adam
   - evaluate: base
+  - profiler: none
 
 hydra:
   job:
