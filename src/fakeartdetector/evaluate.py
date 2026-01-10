@@ -27,7 +27,8 @@ def evaluate_checkpoint(model_checkpoint: str, batch_size: int = 32, threshold: 
     logger.info(f"batch_size: {batch_size}, threshold: {threshold}")
 
     model = FakeArtClassifier().to(DEVICE)
-    model.load_state_dict(load(model_checkpoint))
+    state_dict = load(model_checkpoint, map_location=DEVICE)
+    model.load_state_dict(state_dict)
     model.eval()
 
     _, test_set = cifake()
