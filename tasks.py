@@ -7,6 +7,10 @@ WINDOWS = os.name == "nt"
 PROJECT_NAME = "fakeartdetector"
 PYTHON_VERSION = "3.11"
 
+# Valid precision options (MPS-compatible for macOS)
+# Note: 16-mixed and 64-bit precisions don't work with MPS
+VALID_PRECISIONS = ["32", "bf16-mixed", "bf16", "bf16-true"]
+
 
 def _run(ctx: Context, command: str) -> None:
     ctx.run(command, echo=True, pty=not WINDOWS)
@@ -30,6 +34,8 @@ def preprocess_data(ctx: Context) -> None:
         "lr": "Override learning rate (float)",
         "epochs": "Override epochs (int)",
         "batch_size": "Override batch size (int)",
+        "num_workers": "Override number of data loading workers (0 recommended for macOS)",
+        "precision": f"Override precision: {', '.join(VALID_PRECISIONS)}",
         "experiment": "Experiment config group name (e.g. base)",
         "dataset": "Dataset config group name (e.g. base)",
         "logging": "Logging config group name (e.g. base)",
@@ -43,6 +49,8 @@ def train(
     lr: float | None = None,
     epochs: int | None = None,
     batch_size: int | None = None,
+    num_workers: int | None = None,
+    precision: str | None = None,
     experiment: str | None = None,
     dataset: str | None = None,
     logging: str | None = None,
@@ -58,6 +66,12 @@ def train(
       - uv run invoke train --epochs 2 --lr 0.001
       - uv run invoke train --experiment trials1
     """
+    # Validate precision if provided
+    if precision is not None and precision not in VALID_PRECISIONS:
+        print(f"Error: Invalid precision '{precision}'")
+        print(f"Valid options: {', '.join(VALID_PRECISIONS)}")
+        return
+    
     cmd = f"uv run python -m {PROJECT_NAME}.train"
 
     # Append flags only if provided (Typer/Hydra will handle the rest)
@@ -67,6 +81,10 @@ def train(
         cmd += f" --epochs {epochs}"
     if batch_size is not None:
         cmd += f" --batch-size {batch_size}"
+    if num_workers is not None:
+        cmd += f" --num-workers {num_workers}"
+    if precision is not None:
+        cmd += f" --precision {precision}"
     if experiment is not None:
         cmd += f" --experiment {experiment}"
     if dataset is not None:
@@ -103,6 +121,20 @@ def list_configs(ctx: Context) -> None:
     print(f"  dataset:    {', '.join(datasets) if datasets else '(none found)'}")
     print(f"  logging:    {', '.join(loggings) if loggings else '(none found)'}")
     print(f"  optimizer:  {', '.join(optimizers) if optimizers else '(none found)'}")
+
+
+@task
+def list_precisions(ctx: Context) -> None:
+    """List available precision options for training (MPS-compatible)."""
+    precisions = {
+        "32": "Full precision (32-bit floats) - safe, slower",
+        "bf16-mixed": "Mixed precision with bfloat16 (recommended for MPS)",
+        "bf16": "Brain float 16-bit",
+        "bf16-true": "Brain float 16-bit, explicit",
+    }
+    print("Available precision options (MPS-compatible for macOS):")
+    for precision, desc in sorted(precisions.items()):
+        print(f"  {precision:<12} {desc}")
 
 
 @task

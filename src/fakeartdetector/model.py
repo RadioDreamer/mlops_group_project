@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from pytorch_lightning import LightningModule
 from torch import Tensor, nn, optim, randn
 
@@ -44,11 +48,14 @@ class FakeArtClassifier(LightningModule):
         - Please pass the output with (torch.sigmoid(model(data)) >0.5).long()
     """
 
-    def __init__(self, lr=0.005, dropout=0.1) -> None:
+    def __init__(self, lr: float = 0.005, dropout: float = 0.1, optimizer_cfg: Any | None = None) -> None:
         super().__init__()
 
         self.dropout = dropout
         self.lr = lr
+        self.optimizer_cfg = optimizer_cfg
+
+        self.save_hyperparameters({"lr": lr, "dropout": dropout})
 
         self.backbone = nn.Sequential(
             # Block 1: 3 -> 32 channels
@@ -87,12 +94,37 @@ class FakeArtClassifier(LightningModule):
 
     def training_step(self, batch, batch_idx):
         data, target = batch
-        preds = self(data)
-        # loss will take the logits
-        loss = self.criterium(preds, target)
+        logits = self(data).squeeze(1)
+        target = target.to(dtype=logits.dtype).view_as(logits)
+
+        loss = self.criterium(logits, target)
+
+        preds = (logits > 0).to(dtype=target.dtype)
+        acc = (preds == target).float().mean()
+
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train_acc", acc, on_step=True, on_epoch=True, prog_bar=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        data, target = batch
+        logits = self(data).squeeze(1)
+        target = target.to(dtype=logits.dtype).view_as(logits)
+
+        loss = self.criterium(logits, target)
+        preds = (logits > 0).to(dtype=target.dtype)
+        acc = (preds == target).float().mean()
+
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def configure_optimizers(self):
+        if self.optimizer_cfg is not None:
+            # Local import so unit tests importing the model don't require Hydra.
+            from hydra.utils import instantiate
+
+            return instantiate(self.optimizer_cfg, params=self.parameters())
         return optim.Adam(self.parameters(), lr=self.lr)
 
 

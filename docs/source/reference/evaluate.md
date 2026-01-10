@@ -35,6 +35,14 @@ By default, evaluation uses `cfg.evaluate.model_checkpoint` (which defaults to `
 uv run python -m fakeartdetector.evaluate --model-checkpoint models/base_model.pth
 ```
 
+If you want to evaluate the best Lightning checkpoint (saved in the Hydra output directory), pass the path recorded in `artifacts.yaml`:
+
+```bash
+# Example using a run's output directory
+BEST=$(yq '.best_checkpoint_path' outputs/2026-01-10/14-31-25/artifacts.yaml)
+uv run python -m fakeartdetector.evaluate --model-checkpoint "$BEST"
+```
+
 ## How predictions are computed
 
 The model outputs logits with shape $(B, 1)$. Evaluation converts logits to class predictions using a sigmoid threshold at 0.5:

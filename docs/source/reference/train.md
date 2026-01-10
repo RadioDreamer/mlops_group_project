@@ -1,13 +1,15 @@
 # Training
 
-Training is driven by Hydra configs and exposed via an Invoke task + Typer CLI.
+Training is driven by Hydra configs and executed with PyTorch Lightning's `pl.Trainer`, exposed via an Invoke task + Typer CLI.
 
 ## What training does
 
 - Loads the processed CIFAKE tensors via `cifake()`
-- Trains `FakeArtClassifier` using Adam and `BCEWithLogitsLoss`
-- Saves the trained model `state_dict` to the configured `cfg.dataset.savedTo.path`
-- Saves a training statistics figure to `reports/figures/training_statistics.png`
+- Trains `FakeArtClassifier` using Lightning `pl.Trainer`
+- Optimizer is configured via Hydra (default: Adam), loss: `BCEWithLogitsLoss`
+- Supports precision control (e.g., `32`, `bf16-mixed`) and data loader `num_workers`
+- Saves the trained model `state_dict` to `cfg.dataset.savedTo.path`
+- Writes per-run artifacts in Hydra's output directory (config + metrics + checkpoints)
 
 ## Train the model
 
@@ -23,15 +25,20 @@ Show available training options:
 uv run invoke train --help
 ```
 
-Example: switch optimizer from config:
+Examples:
 
 ```bash
+# Switch optimizer from config
 uv run invoke train --optimizer sgd
-```
 
-List available config group choices:
+# Override precision and number of data loader workers
+uv run invoke train --precision 32 --num-workers 0
+uv run invoke train --precision bf16-mixed --epochs 5
 
-```bash
+# List available precision options (macOS/MPS compatible)
+uv run invoke list_precisions
+
+# List available config group choices
 uv run invoke list-configs
 ```
 
@@ -43,23 +50,43 @@ uv run python -m fakeartdetector.train --help
 
 ## Outputs
 
-After training, the script writes:
+After training, outputs include:
 
-- Model checkpoint at `cfg.dataset.savedTo.path`
-- `reports/figures/training_statistics.png` (loss and accuracy curves)
-
-Additionally, each run writes a Loguru training log into Hydra's per-run output folder:
-
-- `outputs/.../train_hydra.log`
+- Model state dict at `cfg.dataset.savedTo.path` (e.g., `models/base_model.pth`)
+- Hydra output directory: `outputs/<date>/<time>/`
+  - `config_full.yaml`: full composed Hydra config for reproducibility
+  - `artifacts.yaml`: paths to saved model, best checkpoint, logs, and settings (e.g., `num_workers`)
+  - `lightning/version_0/metrics.csv`: CSV logs with `train_loss`, `train_acc`, `val_loss`, `val_acc`, etc.
+  - `checkpoints/`: Lightning checkpoints (best model by `val_loss`)
+  - `train_hydra.log`: Loguru training log
 
 ## Training details
 
 - Device selection: CUDA → MPS → CPU
 - Optimizer: configurable via `cfg.optimizer` (default: Adam)
 - Loss: `BCEWithLogitsLoss`
+- Precision: configurable via `experiment.hyperparameters.precision` (default: `32`). Common values: `32`, `bf16-mixed` (recommended on MPS/macOS). Note: `16-mixed` is not supported on Apple MPS.
+- Data loading: set `experiment.hyperparameters.num_workers` or `--num-workers` to control parallelism. On macOS MPS, `0` workers is often fastest.
 - Predictions for accuracy: `preds = (logits > 0).long()` (equivalent to sigmoid threshold at 0.5)
 
 Note: Use `uv run invoke train --print-config` to print the resolved Hydra config used for the run.
+
+### Using saved statistics
+
+You can print a summary from a finished run:
+
+```bash
+uv run invoke training-summary --output-dir outputs/2026-01-10/14-31-25
+```
+
+Or load metrics in Python:
+
+```python
+from fakeartdetector.training_stats import load_metrics
+
+df = load_metrics("outputs/2026-01-10/14-31-25")
+print(df[["train_loss","val_loss","train_acc","val_acc"]].dropna().tail())
+```
 
 ## API reference
 

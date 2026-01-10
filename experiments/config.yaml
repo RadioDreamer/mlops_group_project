@@ -1,8 +1,0 @@
-hyperparameters:
-  lr: 1e-3
-  epochs: 5
-  batch_size: 32
-
-dataset:
-  path: "data/processed"
-  noise_level: 0.05
