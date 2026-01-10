@@ -9,7 +9,8 @@ import typer
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from pytorch_lightning.loggers import CSVLogger
+from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
+from pytorch_lightning.profilers import AdvancedProfiler, SimpleProfiler, PyTorchProfiler
 from torch import save
 from torch.utils.data import DataLoader
 
@@ -77,7 +78,11 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     )
     logger.debug("Loaded train/val dataloaders")
 
+    # Set up loggers
     csv_logger = CSVLogger(save_dir=str(output_dir), name="lightning")
+    tb_logger = TensorBoardLogger(save_dir=str(output_dir), name="tensorboard")
+    loggers = [csv_logger, tb_logger]
+    
     checkpoint_cb = ModelCheckpoint(
         dirpath=str(output_dir / "checkpoints"),
         monitor="val_loss",
@@ -90,26 +95,94 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
 
     precision = hparams.get("precision", "32")
     
+    # Build profiler from Hydra config
+    profiler_cfg = getattr(cfg, "profiler", None)
+    profiler = None
+    if profiler_cfg and profiler_cfg.get("type") != "none":
+        if profiler_cfg.type == "simple":
+            profiler = SimpleProfiler()
+        elif profiler_cfg.type == "advanced":
+            profiler = AdvancedProfiler()
+        elif profiler_cfg.type == "pytorch":
+            # Use Hydra output dir for profiler traces
+            profiler_dir = output_dir / "profiler"
+            profiler_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Handle schedule parameter (can be dict or None)
+            schedule_cfg = profiler_cfg.get("schedule", None)
+            schedule = None
+            if schedule_cfg and isinstance(schedule_cfg, dict):
+                from torch.profiler import schedule as torch_schedule
+                schedule = torch_schedule(
+                    wait=int(schedule_cfg.get("wait", 1)),
+                    warmup=int(schedule_cfg.get("warmup", 1)),
+                    active=int(schedule_cfg.get("active", 3)),
+                    repeat=int(schedule_cfg.get("repeat", 2)),
+                )
+            
+            # Set up TensorBoard trace if enabled
+            on_trace_ready = None
+            if profiler_cfg.get("tensorboard", False):
+                from torch.profiler import tensorboard_trace_handler
+                on_trace_ready = tensorboard_trace_handler(str(profiler_dir))
+            
+            profiler = PyTorchProfiler(
+                dirpath=str(profiler_dir),
+                filename=str(profiler_cfg.get("filename", "trace")),
+                schedule=schedule,
+                on_trace_ready=on_trace_ready,
+                export_to_trace=bool(profiler_cfg.get("export_to_trace", True)),
+                with_stack=bool(profiler_cfg.get("with_stack", False)),
+                record_module_names=bool(profiler_cfg.get("record_module_names", True)),
+                profile_memory=bool(profiler_cfg.get("profile_memory", True)),
+            )
+
     trainer = pl.Trainer(
         max_epochs=int(hparams["epochs"]),
         precision=precision,
         accelerator="auto",
         devices="auto",
         default_root_dir=str(output_dir),
-        logger=csv_logger,
+        logger=loggers,
         callbacks=[checkpoint_cb, early_stopping_callback],
         log_every_n_steps=50,
+        profiler=profiler,
     )
 
     logger.info(50 * "=")
     logger.info("Starting Lightning training")
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     logger.info("Training complete")
+    
+    # Save profiler output to file
+    if profiler:
+        if isinstance(profiler, AdvancedProfiler):
+            profiler_output = profiler.summary()
+            profiler_file = output_dir / "profiler" / "advanced_profiler.txt"
+            profiler_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(profiler_file, "w") as f:
+                f.write(profiler_output)
+            logger.info(f"Advanced profiler output saved to: {profiler_file}")
+            print("\n" + "="*80)
+            print("PROFILER SUMMARY")
+            print("="*80)
+            print(profiler_output)
+        elif isinstance(profiler, PyTorchProfiler):
+            logger.info(f"Profiler traces saved to: {output_dir / 'profiler'}")
+            if profiler_cfg.get("tensorboard", False):
+                logger.info(f"View in TensorBoard: tensorboard --logdir={output_dir / 'profiler'}")
+            else:
+                logger.info(f"View trace.json in Chrome: chrome://tracing")
 
     model_path = resolve_path(cfg.dataset.savedTo.path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
     save(model.state_dict(), str(model_path))
     logger.info(f"Saved model to: {model_path}")
+    
+    # Log TensorBoard info
+    tb_log_dir = output_dir / "tensorboard"
+    logger.info(f"TensorBoard logs saved to: {tb_log_dir}")
+    logger.info(f"View training metrics: tensorboard --logdir={tb_log_dir}")
 
     # Save full composed Hydra config for reproducibility
     full_cfg_path = output_dir / "config_full.yaml"
@@ -137,6 +210,7 @@ def train(
     batch_size: Annotated[int, typer.Option(help="Override batch size")] = None,
     num_workers: Annotated[int, typer.Option(help="Override number of data loading workers")] = None,
     precision: Annotated[str, typer.Option(help="Override precision (e.g. 32, 16-mixed, bf16-mixed)")] = None,
+    profiler: Annotated[str, typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")] = None,
     config_name: Annotated[str, typer.Option(help="Config file name")] = "default_config.yaml",
     print_config: Annotated[bool, typer.Option(help="Print config")] = False,
     experiment: Annotated[str, typer.Option(help="Choose experimental config")] = "base",
@@ -161,6 +235,8 @@ def train(
         overrides.append(f"experiment.hyperparameters.num_workers={num_workers}")
     if precision is not None:
         overrides.append(f"experiment.hyperparameters.precision={precision}")
+    if profiler is not None:
+        overrides.append(f"profiler={profiler}")
 
     # Build a Hydra-decorated runner so Hydra (not Typer) owns config parsing.
     decorated = hydra.main(

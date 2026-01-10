@@ -1,0 +1,16 @@
+type: pytorch
+# These settings are read in train.py to construct PyTorchProfiler
+# dirpath will default to Hydra's output dir under a 'profiler' subfolder
+filename: trace
+profile_memory: true
+export_to_trace: true
+record_module_names: true
+with_stack: false
+tensorboard: true  # Enable TensorBoard trace output
+# Schedule: wait=1 step, warmup=1 step, profile active for 3 steps, repeat 2 times
+# This prevents hanging by limiting profiling to specific steps
+schedule:
+  wait: 1
+  warmup: 1
+  active: 3
+  repeat: 2

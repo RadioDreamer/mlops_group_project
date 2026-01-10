@@ -36,6 +36,7 @@ def preprocess_data(ctx: Context) -> None:
         "batch_size": "Override batch size (int)",
         "num_workers": "Override number of data loading workers (0 recommended for macOS)",
         "precision": f"Override precision: {', '.join(VALID_PRECISIONS)}",
+        "profiler": "Profiler config group name (none|simple|advanced|pytorch)",
         "experiment": "Experiment config group name (e.g. base)",
         "dataset": "Dataset config group name (e.g. base)",
         "logging": "Logging config group name (e.g. base)",
@@ -51,6 +52,7 @@ def train(
     batch_size: int | None = None,
     num_workers: int | None = None,
     precision: str | None = None,
+    profiler: str | None = None,
     experiment: str | None = None,
     dataset: str | None = None,
     logging: str | None = None,
@@ -85,6 +87,8 @@ def train(
         cmd += f" --num-workers {num_workers}"
     if precision is not None:
         cmd += f" --precision {precision}"
+    if profiler is not None:
+        cmd += f" --profiler {profiler}"
     if experiment is not None:
         cmd += f" --experiment {experiment}"
     if dataset is not None:
@@ -115,12 +119,14 @@ def list_configs(ctx: Context) -> None:
     datasets = _list_yaml_stems(configs_dir / "dataset")
     loggings = _list_yaml_stems(configs_dir / "logging")
     optimizers = _list_yaml_stems(configs_dir / "optimizer")
+    profilers = _list_yaml_stems(configs_dir / "profiler")
 
     print("Available config options:")
     print(f"  experiment: {', '.join(experiments) if experiments else '(none found)'}")
     print(f"  dataset:    {', '.join(datasets) if datasets else '(none found)'}")
     print(f"  logging:    {', '.join(loggings) if loggings else '(none found)'}")
     print(f"  optimizer:  {', '.join(optimizers) if optimizers else '(none found)'}")
+    print(f"  profiler:   {', '.join(profilers) if profilers else '(none found)'}")
 
 
 @task
@@ -135,6 +141,25 @@ def list_precisions(ctx: Context) -> None:
     print("Available precision options (MPS-compatible for macOS):")
     for precision, desc in sorted(precisions.items()):
         print(f"  {precision:<12} {desc}")
+
+
+@task(
+    help={
+        "logdir": "Path to TensorBoard logs directory (default: outputs/)",
+        "port": "Port to run TensorBoard on (default: 6006)",
+    }
+)
+def tensorboard(ctx: Context, logdir: str = "outputs", port: int = 6006) -> None:
+    """Start TensorBoard to view training metrics and profiler traces.
+    
+    Examples:
+        uv run invoke tensorboard
+        uv run invoke tensorboard --logdir outputs/2026-01-10/14-31-25/tensorboard
+        uv run invoke tensorboard --port 6007
+    """
+    print(f"Starting TensorBoard on http://localhost:{port}")
+    print(f"Viewing logs from: {logdir}")
+    _run(ctx, f"uv run tensorboard --logdir={logdir} --port={port}")
 
 
 @task

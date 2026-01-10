@@ -4,4 +4,4 @@ hyperparameters:
   lr: 1e-3
   epochs: 2
   seed: 420
-  precision: "16-mixed"
+  precision: "32"
