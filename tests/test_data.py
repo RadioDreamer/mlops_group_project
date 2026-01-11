@@ -1,27 +1,34 @@
 import os
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import torch
 from torch.utils.data import Dataset
 
-from fakeartdetector.data import cifake, normalize
+from fakeartdetector.data import cifake, normalize, preprocess_data
 from tests import _PATH_DATA
 
 
-def test_normalize():
-    """Test that normalization correctly scales dummy image tensors."""
-    # Create a dummy batch: [batch, channels, height, width]
-    dummy_input = torch.randn(4, 3, 32, 32) + 5  # Shifted mean
-    normalized = normalize(dummy_input)
+@pytest.fixture
+def dummy_images():
+    # 4 images, 3 channels, 32x32
+    return torch.randn(4, 3, 32, 32)
 
-    # Check that output has the same shape
-    assert normalized.shape == dummy_input.shape, "Normalization changed the tensor shape"
 
-    # Check that mean is close to 0 and std is close to 1 per channel
-    for c in range(3):
-        assert torch.abs(normalized[:, c, :, :].mean()) < 1e-5, f"Mean for channel {c} is not 0"
-        assert torch.abs(normalized[:, c, :, :].std() - 1.0) < 1e-5, f"Std for channel {c} is not 1"
+@pytest.fixture
+def dummy_labels():
+    return torch.tensor([1, 0, 1, 0])
+
+
+def test_normalize(dummy_images):
+    normed = normalize(dummy_images)
+    # Check shape unchanged
+    assert normed.shape == dummy_images.shape
+    # Check mean ~0 and std ~1 per channel
+    mean = normed.mean(dim=(0, 2, 3))
+    std = normed.std(dim=(0, 2, 3))
+    assert torch.allclose(mean, torch.zeros_like(mean), atol=1e-6)
+    assert torch.allclose(std, torch.ones_like(std), atol=1e-6)
 
 
 def test_cifake_raises_error_on_missing_files():
@@ -83,3 +90,97 @@ def test_normalize_batch_invariance(batch_size):
     x = torch.randn(batch_size, 3, 32, 32)
     y = normalize(x)
     assert y.shape[0] == batch_size, f"Batch size mismatch for N={batch_size}"
+
+
+def test_cifake_full_execution_flow(tmp_path):
+    """
+    Test the complete loading logic by creating real temporary .pt files.
+    This ensures lines 24-57 and 95-104 in data.py are fully covered.
+    """
+    # 1. Setup: Create the directory structure in the pytest temp folder
+    processed_dir = tmp_path / "data" / "processed"
+    processed_dir.mkdir(parents=True)
+
+    # 2. Create dummy tensors and save them to the expected paths
+    dummy_tensor = torch.randn(2, 3, 32, 32)
+    dummy_label = torch.tensor([1, 0])
+
+    torch.save(dummy_tensor, processed_dir / "train_images.pt")
+    torch.save(dummy_label, processed_dir / "train_target.pt")
+    torch.save(dummy_tensor, processed_dir / "test_images.pt")
+    torch.save(dummy_label, processed_dir / "test_target.pt")
+
+    # 3. Execution: Call cifake pointing to our temp directory
+    train_set, test_set = cifake(processed_dir=str(processed_dir))
+
+    # 4. Assertions: Verify data integrity
+    assert len(train_set) == 2
+    assert len(test_set) == 2
+    assert isinstance(train_set, torch.utils.data.TensorDataset)
+    assert train_set[0][0].shape == (3, 32, 32)
+
+
+@patch("torch.save")
+@patch("typer.echo")
+@patch("datasets.load_dataset")
+def test_preprocess_data(mock_load_dataset, mock_echo, mock_save, tmp_path):
+    # Mock dataset to return 2 items for train and test
+    mock_dataset = {
+        "train": [
+            {"image": MagicMock(convert=lambda x: MagicMock()), "label": 1},
+            {"image": MagicMock(convert=lambda x: MagicMock()), "label": 0},
+        ],
+        "test": [{"image": MagicMock(convert=lambda x: MagicMock()), "label": 1}],
+    }
+    mock_load_dataset.return_value = mock_dataset
+
+    # Patch torchvision transforms to return dummy tensor
+    with patch("torchvision.transforms.Compose", lambda x: lambda img: torch.randn(3, 32, 32)):
+        preprocess_data(str(tmp_path))
+
+    # Should call save 4 times: train_images, train_target, test_images, test_target
+    assert mock_save.call_count == 4
+    # Echo should be called at least 3 times (start, train, test, finish)
+    assert mock_echo.call_count >= 3
+
+
+@patch("torch.load")
+def test_cifake_success(mock_load, tmp_path):
+    # Create dummy files
+    (tmp_path / "train_images.pt").touch()
+    (tmp_path / "train_target.pt").touch()
+    (tmp_path / "test_images.pt").touch()
+    (tmp_path / "test_target.pt").touch()
+
+    # Mock torch.load to return tensors
+    mock_load.side_effect = [
+        torch.randn(4, 3, 32, 32),  # train images
+        torch.tensor([1, 0, 1, 0]),  # train target
+        torch.randn(2, 3, 32, 32),  # test images
+        torch.tensor([1, 0]),  # test target
+    ]
+
+    train_set, test_set = cifake(str(tmp_path))
+    # Check dataset types
+    assert isinstance(train_set, torch.utils.data.TensorDataset)
+    assert isinstance(test_set, torch.utils.data.TensorDataset)
+    # Check lengths
+    assert len(train_set) == 4
+    assert len(test_set) == 2
+
+
+def test_cifake_missing_file(tmp_path):
+    # No files created -> should raise
+    with pytest.raises(FileNotFoundError):
+        cifake(str(tmp_path))
+
+
+def test_show_image_and_target(dummy_images, dummy_labels):
+    # Patch plt.show to prevent GUI and allow assertion
+    with patch("matplotlib.pyplot.show") as mock_show:
+        from fakeartdetector.data import show_image_and_target
+
+        show_image_and_target(dummy_images, dummy_labels)
+
+        # Ensure plt.show() was called once
+        mock_show.assert_called_once()

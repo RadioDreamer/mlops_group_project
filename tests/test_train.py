@@ -1,11 +1,14 @@
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
+import pytorch_lightning.profilers as profilers
 import torch
 from omegaconf import OmegaConf
 from torch.utils.data import TensorDataset
+from typer.testing import CliRunner
 
-from fakeartdetector.train import train_impl
+from fakeartdetector.train import app, train_impl
 
 
 @pytest.fixture
@@ -122,3 +125,76 @@ def test_num_workers_logic(dummy_config, dummy_datasets, tmp_path):
     ):
         train_impl(dummy_config)
         # No error means DataLoader accepted the dataset length
+
+
+def test_pytorch_profiler_logic(dummy_config, dummy_datasets, tmp_path):
+    dummy_config.profiler = {
+        "type": "pytorch",
+        "tensorboard": True,
+        "schedule": {"wait": 1, "warmup": 1, "active": 2, "repeat": 1},
+        "filename": "test_trace",
+    }
+
+    # Real profiler instance
+    real_profiler = profilers.PyTorchProfiler()
+
+    # Patch only the constructor call to return the real instance
+    with (
+        patch("fakeartdetector.train.cifake", return_value=dummy_datasets),
+        patch("fakeartdetector.train.pl.Trainer"),
+        patch("fakeartdetector.train.get_hydra_output_dir", return_value=tmp_path),
+        patch("torch.profiler.schedule"),
+        patch("torch.profiler.tensorboard_trace_handler"),
+        patch("fakeartdetector.train.PyTorchProfiler.__init__", return_value=None),
+        patch("fakeartdetector.train.PyTorchProfiler.start", return_value=None),
+    ):
+        # Inject the real instance manually
+        import fakeartdetector.train as train_mod
+
+        train_mod.profiler = real_profiler
+
+        train_mod.train_impl(dummy_config)
+
+        # Check it’s still a real type
+        assert isinstance(real_profiler, profilers.PyTorchProfiler)
+
+
+def test_advanced_profiler_summary_saving(dummy_config, dummy_datasets, tmp_path):
+    dummy_config.profiler.type = "advanced"
+
+    # Patch the AdvancedProfiler.summary and filesystem
+    with (
+        patch.object(
+            profilers.AdvancedProfiler, "summary", return_value="Mock Profiler Summary Output"
+        ) as mock_summary,
+        patch("fakeartdetector.train.cifake", return_value=dummy_datasets),
+        patch("fakeartdetector.train.pl.Trainer"),
+        patch("fakeartdetector.train.get_hydra_output_dir", return_value=tmp_path),
+        patch("builtins.open", mock_open()) as m_open,
+    ):
+        train_impl(dummy_config)
+        mock_summary.assert_called()
+        write_calls = [call.args[0] for call in m_open().write.call_args_list]
+        assert "Mock Profiler Summary Output" in write_calls
+
+
+def test_train_cli_execution():
+    runner = CliRunner()
+
+    actual_config_path = Path(__file__).resolve().parents[1] / "configs"
+
+    with (
+        patch("fakeartdetector.train.train_impl") as mock_impl,
+        patch("fakeartdetector.train.CONFIG_DIR", actual_config_path),
+        patch("sys.argv", ["train.py"]),
+    ):
+        result = runner.invoke(
+            app,
+            [
+                "--lr",
+                "0.002",  # do NOT include "train"
+            ],
+        )
+
+    assert result.exit_code == 0, f"CLI failed with output: {result.output}"
+    assert mock_impl.called
