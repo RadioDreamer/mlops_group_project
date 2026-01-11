@@ -1,16 +1,9 @@
-import warnings
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import torch
 
 from fakeartdetector.model import FakeArtClassifier
-
-warnings.filterwarnings(
-    "ignore",
-    message=".*barebones=True.*",
-    category=UserWarning,
-)
 
 
 @pytest.fixture

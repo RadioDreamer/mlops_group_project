@@ -5,8 +5,32 @@ import pytest
 import torch
 from omegaconf import OmegaConf
 from torch.utils.data import TensorDataset
+from typer.testing import CliRunner
 
-from fakeartdetector.evaluate import evaluate_checkpoint, evaluate_impl
+from fakeartdetector.data import cifake
+from fakeartdetector.evaluate import app, evaluate_checkpoint, evaluate_impl
+
+
+@patch("torch.load")
+@patch("pathlib.Path.is_file")
+def test_data_loading_logic(mock_is_file, mock_torch_load):
+    """Force execution of cifake() by mocking file existence and torch loading."""
+
+    # Make all file checks succeed
+    mock_is_file.return_value = True
+
+    # Make torch.load return dummy tensors
+    dummy_tensor = torch.randn(1, 3, 32, 32)
+    dummy_target = torch.tensor([1])
+    mock_torch_load.side_effect = [dummy_tensor, dummy_target, dummy_tensor, dummy_target]
+
+    # Call the function
+    train_set, test_set = cifake()
+
+    # Assertions
+    assert isinstance(train_set, torch.utils.data.TensorDataset)
+    assert isinstance(test_set, torch.utils.data.TensorDataset)
+    assert mock_torch_load.call_count == 4
 
 
 @pytest.fixture
@@ -95,3 +119,53 @@ def test_evaluate_impl_execution(mock_resolve, mock_log, mock_dir, mock_eval_fun
 
     evaluate_impl(dummy_cfg)
     mock_eval_func.assert_called_once()
+
+
+def test_evaluate_cli_overrides(tmp_path):
+    """Ensure CLI runs without Hydra interference."""
+    runner = CliRunner()
+
+    # Dummy Hydra config dir (Hydra otherwise errors)
+    dummy_config_dir = tmp_path / "configs"
+    dummy_config_dir.mkdir(parents=True)
+
+    # Mock everything that could touch the filesystem or Hydra
+    with (
+        patch("fakeartdetector.evaluate.CONFIG_DIR", dummy_config_dir),
+        patch("fakeartdetector.evaluate.evaluate_impl") as mock_impl,
+        patch("fakeartdetector.evaluate.resolve_path", side_effect=lambda x: Path(x)),
+        patch("fakeartdetector.evaluate.get_hydra_output_dir", return_value=tmp_path),
+        patch("fakeartdetector.evaluate.configure_loguru_file", return_value="dummy.log"),
+        patch("fakeartdetector.evaluate.hydra.main") as mock_hydra,
+        patch("sys.argv", ["evaluate.py"]),
+    ):
+        # Fake the hydra decorator to just call the wrapped function
+        def fake_hydra_main(*args, **kwargs):
+            def wrapper(fn):
+                def wrapped():
+                    cfg = {"evaluate": {"model_checkpoint": "dummy.pt", "batch_size": 16, "threshold": 0.7}}
+                    mock_impl(cfg)
+
+                return wrapped
+
+            return wrapper
+
+        mock_hydra.side_effect = fake_hydra_main
+
+        # ✅ Do NOT include "evaluate" in arguments — app already wraps that command
+        result = runner.invoke(
+            app,
+            [
+                "--batch-size",
+                "16",
+                "--threshold",
+                "0.7",
+            ],
+        )
+
+    # 🔍 Debug if needed
+    if result.exit_code != 0:
+        print(result.output)
+
+    assert result.exit_code == 0, f"CLI failed with: {result.output}"
+    mock_impl.assert_called_once()

@@ -77,6 +77,24 @@ def test_train_impl_smoke(
     assert (tmp_path / "config_full.yaml").exists(), "Full config was not saved"
 
 
+@pytest.mark.parametrize("profiler_name", ["simple", "advanced"])
+@pytest.mark.parametrize("num_workers", [0, 4])
+def test_training_config_branches(dummy_config, dummy_datasets, tmp_path, profiler_name, num_workers):
+    """Run training with different config combinations to hit missing lines."""
+    dummy_config.profiler.type = profiler_name
+    dummy_config.experiment.hyperparameters.num_workers = num_workers
+
+    with (
+        patch("fakeartdetector.train.cifake", return_value=dummy_datasets),
+        patch("fakeartdetector.train.pl.Trainer"),
+        patch("fakeartdetector.train.get_hydra_output_dir", return_value=tmp_path),
+    ):
+        from fakeartdetector.train import train_impl
+
+        train_impl(dummy_config)
+        # This executes the specific 'if profiler == ...' blocks
+
+
 @pytest.mark.parametrize("profiler_type", ["simple", "none"])
 def test_profiler_logic(profiler_type, dummy_config, dummy_datasets, tmp_path):
     dummy_config.profiler.type = profiler_type

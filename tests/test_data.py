@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 import pytest
 import torch
@@ -27,6 +28,28 @@ def test_cifake_raises_error_on_missing_files():
     """Ensure FileNotFoundError is raised if the processed data doesn't exist."""
     with pytest.raises(FileNotFoundError, match="Preprocessed data file"):
         cifake(processed_dir="non_existent_directory")
+
+
+@patch("torch.load")
+@patch("pathlib.Path.is_file")
+def test_data_loading_logic(mock_is_file, mock_torch_load):
+    """Force execution of cifake() by mocking file existence and torch loading."""
+
+    # Make all file checks succeed
+    mock_is_file.return_value = True
+
+    # Make torch.load return dummy tensors
+    dummy_tensor = torch.randn(1, 3, 32, 32)
+    dummy_target = torch.tensor([1])
+    mock_torch_load.side_effect = [dummy_tensor, dummy_target, dummy_tensor, dummy_target]
+
+    # Call the function
+    train_set, test_set = cifake()
+
+    # Assertions
+    assert isinstance(train_set, torch.utils.data.TensorDataset)
+    assert isinstance(test_set, torch.utils.data.TensorDataset)
+    assert mock_torch_load.call_count == 4
 
 
 @pytest.mark.skipif(not os.path.exists(_PATH_DATA), reason="Data files not found in data/processed")
