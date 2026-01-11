@@ -90,6 +90,10 @@ class FakeArtClassifier(LightningModule):
         self.criterium = nn.BCEWithLogitsLoss()
 
     def forward(self, x: Tensor) -> Tensor:
+        if x.ndim != 4:
+            raise ValueError("Expected input to be a 4D tensor [Batch, C, H, W]")
+        if x.shape[1] != 3:
+            raise ValueError("Expected 3 input channels (RGB)")
         return self.head(self.classifier(self.backbone(x)))
 
     def training_step(self, batch, batch_idx):
