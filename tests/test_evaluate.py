@@ -48,7 +48,6 @@ def dummy_cfg(tmp_path):
     return OmegaConf.create({"evaluate": {"model_checkpoint": str(ckpt), "batch_size": 4, "threshold": 0.5}})
 
 
-# --- ✅ FIXED VERSION ---
 @patch("fakeartdetector.evaluate.cifake")
 @patch("fakeartdetector.evaluate.load")
 @patch("fakeartdetector.evaluate.FakeArtClassifier")
@@ -79,7 +78,6 @@ def test_evaluate_checkpoint_logic(mock_model_class, mock_load, mock_cifake, dum
     assert accuracy == 1.0
 
 
-# --- ✅ FIXED VERSION ---
 def test_threshold_logic_direct(dummy_test_set):
     logits = torch.tensor([[0.1], [0.1], [0.1], [0.1]])
 
@@ -125,6 +123,7 @@ def test_evaluate_cli_overrides(tmp_path):
     """Ensure CLI runs without Hydra interference."""
     runner = CliRunner()
 
+    # Outputs configs!!
     # Dummy Hydra config dir (Hydra otherwise errors)
     dummy_config_dir = tmp_path / "configs"
     dummy_config_dir.mkdir(parents=True)
@@ -151,8 +150,6 @@ def test_evaluate_cli_overrides(tmp_path):
             return wrapper
 
         mock_hydra.side_effect = fake_hydra_main
-
-        # ✅ Do NOT include "evaluate" in arguments — app already wraps that command
         result = runner.invoke(
             app,
             [
@@ -163,7 +160,6 @@ def test_evaluate_cli_overrides(tmp_path):
             ],
         )
 
-    # 🔍 Debug if needed
     if result.exit_code != 0:
         print(result.output)
 
