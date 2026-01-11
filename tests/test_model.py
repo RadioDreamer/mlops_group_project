@@ -1,9 +1,16 @@
-from unittest.mock import MagicMock, patch
+import warnings
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import torch
 
 from fakeartdetector.model import FakeArtClassifier
+
+warnings.filterwarnings(
+    "ignore",
+    message=".*barebones=True.*",
+    category=UserWarning,
+)
 
 
 @pytest.fixture
@@ -32,6 +39,7 @@ def test_model_output_shape(model, sample_batch):
 
 def test_training_step_runs(model, sample_batch):
     """Check if a single training step runs without crashing and returns a scalar loss."""
+    model.trainer = Mock()
     loss = model.training_step(sample_batch, batch_idx=0)
     assert isinstance(loss, torch.Tensor)
     assert loss.dim() == 0, "Loss should be a scalar"
@@ -40,6 +48,7 @@ def test_training_step_runs(model, sample_batch):
 
 def test_validation_step_runs(model, sample_batch):
     """Ensure validation logic is covered and produces a loss."""
+    model.trainer = Mock()
     loss = model.validation_step(sample_batch, batch_idx=0)
     assert isinstance(loss, torch.Tensor)
     assert loss.dim() == 0
