@@ -192,7 +192,7 @@ def test_train_cli_execution():
             app,
             [
                 "--lr",
-                "0.002",  # do NOT include "train"
+                "0.002",
             ],
         )
 
