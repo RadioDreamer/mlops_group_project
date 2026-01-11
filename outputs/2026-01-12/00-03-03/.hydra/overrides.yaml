@@ -1,5 +1,0 @@
-- experiment=base
-- dataset=base
-- logging=base
-- optimizer=adam
-- experiment.hyperparameters.lr=0.002
