@@ -74,7 +74,7 @@ def test_data_loading():
     assert isinstance(label, torch.Tensor), "Label should be a torch.Tensor"
 
     # 3. Check labels (should be 0 or 1 for Real vs Fake)
-    # Using parametrization logic for specific label checks
+    # Check that both train and test sets contain only binary labels 0 and 1
     for dataset_name, dataset in [("train", train_set), ("test", test_set)]:
         # Extract all labels from the dataset tensors for a quick check
         labels = dataset.tensors[1]
