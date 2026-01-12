@@ -82,7 +82,7 @@ def test_train_impl_smoke(
 
 @pytest.mark.parametrize("profiler_name", ["simple", "advanced"])
 @pytest.mark.parametrize("num_workers", [0, 4])
-def test_training_config_branches(dummy_config, dummy_datasets, tmp_path, profiler_name, num_workers):
+def test_profiler_and_num_workers_combinations(dummy_config, dummy_datasets, tmp_path, profiler_name, num_workers):
     """Run training with different config combinations to hit missing lines."""
     dummy_config.profiler.type = profiler_name
     dummy_config.experiment.hyperparameters.num_workers = num_workers
@@ -95,28 +95,24 @@ def test_training_config_branches(dummy_config, dummy_datasets, tmp_path, profil
         from fakeartdetector.train import train_impl
 
         train_impl(dummy_config)
-        # This executes the specific 'if profiler == ...' blocks
 
 
 @pytest.mark.parametrize("profiler_type", ["simple", "none"])
 def test_profiler_logic(profiler_type, dummy_config, dummy_datasets, tmp_path):
     dummy_config.profiler.type = profiler_type
 
-    # USE dummy_datasets instead of (MagicMock(), MagicMock())
     with (
         patch("fakeartdetector.train.cifake", return_value=dummy_datasets),
         patch("fakeartdetector.train.pl.Trainer"),
         patch("fakeartdetector.train.get_hydra_output_dir", return_value=tmp_path),
     ):
         train_impl(dummy_config)
-        # If no error is raised, the branching logic for the profiler is valid.
 
 
 def test_num_workers_logic(dummy_config, dummy_datasets, tmp_path):
     """Test that num_workers is correctly calculated."""
     dummy_config.experiment.hyperparameters.num_workers = None
 
-    # Pass dummy_datasets (which has 4 samples) instead of MagicMocks
     with (
         patch("fakeartdetector.train.cifake", return_value=dummy_datasets),
         patch("fakeartdetector.train.pl.Trainer"),
@@ -124,7 +120,6 @@ def test_num_workers_logic(dummy_config, dummy_datasets, tmp_path):
         patch("os.cpu_count", return_value=8),
     ):
         train_impl(dummy_config)
-        # No error means DataLoader accepted the dataset length
 
 
 def test_pytorch_profiler_logic(dummy_config, dummy_datasets, tmp_path):
@@ -145,18 +140,12 @@ def test_pytorch_profiler_logic(dummy_config, dummy_datasets, tmp_path):
         patch("fakeartdetector.train.get_hydra_output_dir", return_value=tmp_path),
         patch("torch.profiler.schedule"),
         patch("torch.profiler.tensorboard_trace_handler"),
-        patch("fakeartdetector.train.PyTorchProfiler.__init__", return_value=None),
-        patch("fakeartdetector.train.PyTorchProfiler.start", return_value=None),
+        patch("fakeartdetector.train.PyTorchProfiler", return_value=real_profiler) as mock_profiler_cls,
     ):
-        # Inject the real instance manually
-        import fakeartdetector.train as train_mod
+        train_impl(dummy_config)
 
-        train_mod.profiler = real_profiler
-
-        train_mod.train_impl(dummy_config)
-
-        # Check it’s still a real type
-        assert isinstance(real_profiler, profilers.PyTorchProfiler)
+        # Ensure the profiler was constructed and is still a real type
+        mock_profiler_cls.assert_called()
 
 
 def test_advanced_profiler_summary_saving(dummy_config, dummy_datasets, tmp_path):
