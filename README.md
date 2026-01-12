@@ -31,7 +31,7 @@
 
 * [ ] Write unit tests related to the data part of your code (M16) TO-DO
 * [ ] Write unit tests related to model construction and or model training (M16) TAMAS PR
-* [ ] Calculate the code coverage (M16) TAMAS PR
+* [x] Calculate the code coverage (M16)
 * [x] Get some continuous integration running on the GitHub repository (M17)
 * [x] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
 * [x] Add a linting step to your continuous integration (M17)
