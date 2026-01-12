@@ -51,6 +51,7 @@ def dummy_cfg(tmp_path):
 @patch("fakeartdetector.evaluate.cifake")
 @patch("fakeartdetector.evaluate.load")
 @patch("fakeartdetector.evaluate.FakeArtClassifier")
+@patch("fakeartdetector.evaluate.DEVICE", torch.device("cpu"))
 def test_evaluate_checkpoint_logic(mock_model_class, mock_load, mock_cifake, dummy_test_set):
     mock_cifake.return_value = (None, dummy_test_set)
     mock_load.return_value = {}
@@ -78,6 +79,7 @@ def test_evaluate_checkpoint_logic(mock_model_class, mock_load, mock_cifake, dum
     assert accuracy == 1.0
 
 
+@patch("fakeartdetector.evaluate.DEVICE", torch.device("cpu"))
 def test_threshold_logic_direct(dummy_test_set):
     logits = torch.tensor([[0.1], [0.1], [0.1], [0.1]])
 
@@ -123,8 +125,7 @@ def test_evaluate_cli_overrides(tmp_path):
     """Ensure CLI runs without Hydra interference."""
     runner = CliRunner()
 
-    # Outputs configs!!
-    # Dummy Hydra config dir (Hydra otherwise errors)
+    # Creates dummy Hydra config directory (Hydra otherwise errors)
     dummy_config_dir = tmp_path / "configs"
     dummy_config_dir.mkdir(parents=True)
 
@@ -132,7 +133,7 @@ def test_evaluate_cli_overrides(tmp_path):
     with (
         patch("fakeartdetector.evaluate.CONFIG_DIR", dummy_config_dir),
         patch("fakeartdetector.evaluate.evaluate_impl") as mock_impl,
-        patch("fakeartdetector.evaluate.resolve_path", side_effect=lambda x: Path(x)),
+        patch("fakeartdetector.evaluate.resolve_path", side_effect=Path),
         patch("fakeartdetector.evaluate.get_hydra_output_dir", return_value=tmp_path),
         patch("fakeartdetector.evaluate.configure_loguru_file", return_value="dummy.log"),
         patch("fakeartdetector.evaluate.hydra.main") as mock_hydra,
