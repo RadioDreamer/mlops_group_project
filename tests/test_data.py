@@ -74,7 +74,7 @@ def test_data_loading():
     assert isinstance(label, torch.Tensor), "Label should be a torch.Tensor"
 
     # 3. Check labels (should be 0 or 1 for Real vs Fake)
-    # Using parametrization logic for specific label checks
+    # Check that both train and test sets contain only binary labels 0 and 1
     for dataset_name, dataset in [("train", train_set), ("test", test_set)]:
         # Extract all labels from the dataset tensors for a quick check
         labels = dataset.tensors[1]
@@ -95,7 +95,8 @@ def test_normalize_batch_invariance(batch_size):
 def test_cifake_full_execution_flow(tmp_path):
     """
     Test the complete loading logic by creating real temporary .pt files.
-    This ensures lines 24-57 and 95-104 in data.py are fully covered.
+    This ensures the full CIFAKE data loading and tensor dataset creation
+    logic in data.py is exercised.
     """
     # 1. Setup: Create the directory structure in the pytest temp folder
     processed_dir = tmp_path / "data" / "processed"
