@@ -162,6 +162,7 @@ def test_cifake_success(mock_load, tmp_path):
     ]
 
     train_set, test_set = cifake(str(tmp_path))
+
     # Check dataset types
     assert isinstance(train_set, torch.utils.data.TensorDataset)
     assert isinstance(test_set, torch.utils.data.TensorDataset)

@@ -18,7 +18,7 @@ def sample_batch():
     batch_size = 4
     channels, height, width = 3, 32, 32
     x = torch.randn(batch_size, channels, height, width)
-    # Binary labels for BCEWithLogitsLoss
+    # Binary labels for BCEWithLogitsLoss, shaped to match model output [Batch_Size, 1]
     y = torch.randint(0, 2, (batch_size,)).float()
     return x, y
 
@@ -90,8 +90,7 @@ def test_configure_optimizers_with_config(model):
 
 def test_error_on_wrong_shape(model):
     """
-    Assert that the model raises errors for invalid input shapes.
-    Note: To make this pass, you should add validation logic to your forward() method.
+    Assert that the model's existing input-shape validation raises errors for invalid input tensors.
     """
     # Test wrong number of dimensions (3D instead of 4D)
     with pytest.raises(ValueError, match="Expected input to be a 4D tensor"):
