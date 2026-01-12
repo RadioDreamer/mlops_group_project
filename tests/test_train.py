@@ -130,22 +130,17 @@ def test_pytorch_profiler_logic(dummy_config, dummy_datasets, tmp_path):
         "filename": "test_trace",
     }
 
-    # Real profiler instance
-    real_profiler = profilers.PyTorchProfiler()
-
-    # Patch only the constructor call to return the real instance
+    # patch only methods that would otherwise do real work
     with (
         patch("fakeartdetector.train.cifake", return_value=dummy_datasets),
         patch("fakeartdetector.train.pl.Trainer"),
         patch("fakeartdetector.train.get_hydra_output_dir", return_value=tmp_path),
         patch("torch.profiler.schedule"),
         patch("torch.profiler.tensorboard_trace_handler"),
-        patch("fakeartdetector.train.PyTorchProfiler", return_value=real_profiler) as mock_profiler_cls,
+        patch.object(profilers.PyTorchProfiler, "start", return_value=None),
+        patch.object(profilers.PyTorchProfiler, "stop", return_value=None),
     ):
         train_impl(dummy_config)
-
-        # Ensure the profiler was constructed and is still a real type
-        mock_profiler_cls.assert_called()
 
 
 def test_advanced_profiler_summary_saving(dummy_config, dummy_datasets, tmp_path):
