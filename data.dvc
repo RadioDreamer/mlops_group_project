@@ -1,6 +1,39 @@
 outs:
-- md5: 49b1e977439b79d9b06c82f8c0a682dd.dir
-  size: 1475552739
-  nfiles: 5
-  hash: md5
+- hash: md5
   path: data
+  files:
+  - relpath: logs/train_logger.log
+    md5: f4d2048329d2a95ebe822c192e436d4f
+    size: 27929
+    cloud:
+      hpc:
+        etag: 08a386b0b8c88892031001
+        version_id: '1768309020951331'
+  - relpath: processed/test_images.pt
+    md5: 9aac7a2f08d2a3af59b9ededfe298b0e
+    size: 245761200
+    cloud:
+      hpc:
+        etag: 08fac2a68dca8892031001
+        version_id: '1768309467488634'
+  - relpath: processed/test_target.pt
+    md5: d1df1ab361918981a49346961a98723b
+    size: 161200
+    cloud:
+      hpc:
+        etag: 0884aacab8c88892031001
+        version_id: '1768309021381892'
+  - relpath: processed/train_images.pt
+    md5: e1c069285b94c5946c3073e7aaff31f3
+    size: 1228801205
+    cloud:
+      hpc:
+        etag: 08af8ea1d2cf8892031001
+        version_id: '1768310954280751'
+  - relpath: processed/train_target.pt
+    md5: 32cab7800c9090fbfda194bfe334305e
+    size: 801205
+    cloud:
+      hpc:
+        etag: 089dd1a7b9c88892031001
+        version_id: '1768309022910621'
