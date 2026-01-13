@@ -1,4 +1,5 @@
 [core]
     remote = hpc
 ['remote "hpc"']
-    url = ssh://gbardvc/${env:DVC_HPC_STORAGE_PATH}
+    url =  gs://mlops_bucket_group_77
+    # url = ssh://gbardvc/${env:DVC_HPC_STORAGE_PATH}
