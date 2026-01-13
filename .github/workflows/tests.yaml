@@ -46,3 +46,16 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Get data from DVC
+        run: |
+          uv run dvc pull
+        env:
+          # This secret must contain your GDrive service account JSON or credentials
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+
+      - name: Run tests & coverage
+        run: |
+          uv run coverage run -m pytest tests/
+          uv run coverage report -m
+          uv run coverage xml
