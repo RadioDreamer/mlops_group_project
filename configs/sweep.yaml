@@ -3,7 +3,7 @@ method: bayes
 project: fake-art-detection
 entity: mlops_DTU_77
 metric:
-  name: val_loss  
+  name: val_loss
   goal: minimize
 
 # Hydra Format arguments

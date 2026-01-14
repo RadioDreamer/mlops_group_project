@@ -6,6 +6,7 @@ from typing import Annotated
 import hydra
 import pytorch_lightning as pl
 import typer
+from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -14,13 +15,11 @@ from pytorch_lightning.profilers import AdvancedProfiler, PyTorchProfiler, Simpl
 from torch import save
 from torch.utils.data import DataLoader
 
+# import time
+import wandb
 from fakeartdetector.data import cifake
 from fakeartdetector.helpers import configure_loguru_file, get_hydra_output_dir, resolve_path
 from fakeartdetector.model import FakeArtClassifier
-
-# import time
-import wandb
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -93,28 +92,26 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     tb_logger = TensorBoardLogger(save_dir=str(output_dir), name="tensorboard")
 
     # NEW: W&B Logger
-    wb_logger = WandbLogger( 
-            project=os.environ.get("WANDB_PROJECT"),
-            entity=os.environ.get("WANDB_ENTITY"),
-            save_dir=str(output_dir), 
-            log_model="all",  
-            config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-        )
-    
+    wb_logger = WandbLogger(
+        project=os.environ.get("WANDB_PROJECT"),
+        entity=os.environ.get("WANDB_ENTITY"),
+        save_dir=str(output_dir),
+        log_model="all",
+        config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True),
+    )
+
     _ = wb_logger.experiment
 
-
-    loggers = [ wb_logger, csv_logger, tb_logger]
-
+    loggers = [wb_logger, csv_logger, tb_logger]
 
     checkpoint_cb = ModelCheckpoint(
-            dirpath=Path(wb_logger.experiment.dir) / "checkpoints",
-            monitor="val_loss",
-            mode="min",
-            save_top_k=1,
-            filename="epoch{epoch}-val_loss{val_loss:.4f}",
-            save_on_train_epoch_end=True
-        )
+        dirpath=Path(wb_logger.experiment.dir) / "checkpoints",
+        monitor="val_loss",
+        mode="min",
+        save_top_k=1,
+        filename="epoch{epoch}-val_loss{val_loss:.4f}",
+        save_on_train_epoch_end=True,
+    )
 
     early_stopping_callback = EarlyStopping(monitor="val_loss", patience=3, verbose=True, mode="min")
 
@@ -181,20 +178,15 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     logger.info("Training complete")
 
-
-
     checkpoint_dir = Path(wb_logger.experiment.dir) / "checkpoints"
     print(checkpoint_dir)
-    
+
     # CREATE ARTIFACT
     if checkpoint_dir.exists() and any(checkpoint_dir.iterdir()):
         logger.info(f"Manual Artifact Trigger: Uploading {checkpoint_dir}")
         try:
             # Define the Artifact
-            folder_artifact = wandb.Artifact(
-                name=f"model-checkpoints-{wb_logger.version}", 
-                type="model"
-            )
+            folder_artifact = wandb.Artifact(name=f"model-checkpoints-{wb_logger.version}", type="model")
             # Add the entire directory to the manifest
             folder_artifact.add_dir(str(checkpoint_dir))
             # Log it to the server
@@ -205,11 +197,8 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
             logger.error(f"Failed to log artifact: {e}")
     else:
         logger.warning("Checkpoints folder is empty or missing locally.")
-            # Mandatory: Wait for the upload to hit 100%
+        # Mandatory: Wait for the upload to hit 100%
     wandb.finish()
-    
-
-
 
     # Save profiler output to file
     if profiler:
@@ -258,8 +247,6 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     artifacts_path = output_dir / "artifacts.yaml"
     OmegaConf.save(config=OmegaConf.create(artifacts), f=str(artifacts_path))
     logger.info(f"Saved artifacts manifest to: {artifacts_path}")
-   
-    
 
 
 @app.command()
