@@ -18,15 +18,15 @@
 * [x] Used Hydra to load the configurations and manage your hyperparameters (M11) Levi
 * [x] Use profiling to optimize your code (M12) Tamas (Ioannis did it with pytorch lightning implementation)
 * [x] Use logging to log important events in your code (M14) Ioannis
-* [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14) Eric
-* [ ] Consider running a hyperparameter optimization sweep (M14) Levi
+* [x] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14) Eric
+* [x] Consider running a hyperparameter optimization sweep (M14) Levi
 * [x] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15) Ioannis
 
 ### Week 1 Tech Debt
-* [ ] Ensure data is not loaded when its cached => THIS IS FINE, SINCE DATA IS 100MB
-* [ ] Ensure train.dockerfile only loads the training data => THIS IS FINE, SINCE DATA IS 100MB
-* [ ] Ensure evaluate.dockerfile only loads the test data => THIS IS FINE, SINCE DATA IS 100MB
-* [ ] Update README.md to reflect latest state of the project
+* [x] Ensure data is not loaded when its cached => THIS IS FINE, SINCE DATA IS 100MB
+* [x] Ensure train.dockerfile only loads the training data => THIS IS FINE, SINCE DATA IS 100MB
+* [x] Ensure evaluate.dockerfile only loads the test data => THIS IS FINE, SINCE DATA IS 100MB
+* [x] Update README.md to reflect latest state of the project
 
 ### Week 2
 
