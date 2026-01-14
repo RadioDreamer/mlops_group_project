@@ -40,3 +40,6 @@ images:
 substitutions:
   _REGION: 'europe-west1'
   _REPO_NAME: 'group-77-project'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
