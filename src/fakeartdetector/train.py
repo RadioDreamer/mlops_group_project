@@ -6,6 +6,9 @@ from typing import Annotated
 import hydra
 import pytorch_lightning as pl
 import typer
+
+# import time
+import wandb
 from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
@@ -16,7 +19,6 @@ from torch import save
 from torch.utils.data import DataLoader
 
 # import time
-import wandb
 from fakeartdetector.data import cifake
 from fakeartdetector.helpers import configure_loguru_file, get_hydra_output_dir, resolve_path
 from fakeartdetector.model import FakeArtClassifier
@@ -263,6 +265,7 @@ def train(
     dataset: Annotated[str, typer.Option(help="Choose dataset config")] = "base",
     logging: Annotated[str, typer.Option(help="Choose logging config")] = "base",
     optimizer: Annotated[str, typer.Option(help="Choose optimizer config (e.g. adam, sgd)")] = "adam",
+    output_path: Annotated[str, typer.Option(help="Choose model output directory")] = None,
 ) -> None:
     """Typer wrapper that forwards options as Hydra overrides."""
     overrides: list[str] = [
@@ -283,6 +286,8 @@ def train(
         overrides.append(f"experiment.hyperparameters.precision={precision}")
     if profiler is not None:
         overrides.append(f"profiler={profiler}")
+    if output_path is not None:
+        overrides.append(f"dataset.savedTo.path={output_path}")
 
     # Build a Hydra-decorated runner so Hydra (not Typer) owns config parsing.
     decorated = hydra.main(
