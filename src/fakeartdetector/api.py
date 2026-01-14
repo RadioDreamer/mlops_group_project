@@ -80,12 +80,7 @@ async def model_inference(data: UploadFile = File(...)):
         """
 
     image_bytes = await data.read()
-    i_image = Image.open(BytesIO(image_bytes))
-    if i_image.mode != "RGB":
-        i_image = i_image.convert(mode="RGB")
-
-    image = cast(Tensor, transform(i_image))
-    img = cast(Tensor, unsqueeze(image, 0).float().to(DEVICE))
+    img = await image_clean_utility(image_bytes)
     with no_grad():
         logits = model(img)
         prob = sigmoid(logits)
@@ -94,12 +89,19 @@ async def model_inference(data: UploadFile = File(...)):
     # with open("image.jpg", "wb") as image:
     #    content = await data.read()
     #    image.write(content)
+    # this would be a file response
+    # return FileResponse(
+    #    "resized_img.jpg",
+    #    media_type="image/jpeg",
+    #    filename="resized_img.jpg",
+    #    status_code=HTTPStatus.OK,
+    # )
 
 
-# this would be a file response
-# return FileResponse(
-#    "resized_img.jpg",
-#    media_type="image/jpeg",
-#    filename="resized_img.jpg",
-#    status_code=HTTPStatus.OK,
-# )
+async def image_clean_utility(image_bytes: bytes):
+    i_image = Image.open(BytesIO(image_bytes))
+    if i_image.mode != "RGB":
+        i_image = i_image.convert(mode="RGB")
+
+    image = cast(Tensor, transform(i_image))
+    return cast(Tensor, unsqueeze(image, 0).float().to(DEVICE))

@@ -220,6 +220,12 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
     _run(ctx, f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}")
 
 
+@task
+def docker_build_api(ctx: Context, progress: str = "plain") -> None:
+    """Build docker images."""
+    _run(ctx, f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}")
+
+
 # data version commands
 @task
 def dvc(ctx, folder="data", message="Add new data"):
