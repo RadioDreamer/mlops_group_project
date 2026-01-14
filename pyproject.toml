@@ -31,13 +31,14 @@ dependencies = [
     "matplotlib>=3.10.8",
     "mkdocs-material>=9.4.6",
     "pre-commit>=4.1.0",
+    "python-multipart>=0.0.21",
     "pytorch-lightning>=2.6.0",
     "scikit-learn>=1.8.0",
     "tensorboard>=2.20.0",
     "torch==2.6.0",
     "torchvision>=0.21.0",
     "typer==0.21.1",
-    "uvicorn==0.40.0",
+    "uvicorn[standard]==0.40.0",
     "wandb>=0.24.0",
 ]
 

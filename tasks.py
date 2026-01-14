@@ -29,6 +29,12 @@ def preprocess_data(ctx: Context) -> None:
     _run(ctx, f"uv run src/{PROJECT_NAME}/data.py data/processed")
 
 
+@task
+def startapi(ctx: Context) -> None:
+    """Starts api using uvicorn"""
+    _run(ctx, "uv run uvicorn --reload --app-dir src/fakeartdetector/ api:app")
+
+
 @task(
     help={
         "lr": "Override learning rate (float)",
