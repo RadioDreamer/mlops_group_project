@@ -1,22 +1,29 @@
 import os
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 import hydra
 import pytorch_lightning as pl
 import typer
+
+# import time
+import wandb
+from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
+from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger, WandbLogger
 from pytorch_lightning.profilers import AdvancedProfiler, PyTorchProfiler, SimpleProfiler
 from torch import save
 from torch.utils.data import DataLoader
 
+# import time
 from fakeartdetector.data import cifake
 from fakeartdetector.helpers import configure_loguru_file, get_hydra_output_dir, resolve_path
 from fakeartdetector.model import FakeArtClassifier
+
+load_dotenv()
 
 app = typer.Typer()
 
@@ -85,15 +92,29 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     # Set up loggers
     csv_logger = CSVLogger(save_dir=str(output_dir), name="lightning")
     tb_logger = TensorBoardLogger(save_dir=str(output_dir), name="tensorboard")
-    loggers = [csv_logger, tb_logger]
+
+    # NEW: W&B Logger
+    wb_logger = WandbLogger(
+        project=os.environ.get("WANDB_PROJECT"),
+        entity=os.environ.get("WANDB_ENTITY"),
+        save_dir=str(output_dir),
+        log_model="all",
+        config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True),
+    )
+
+    _ = wb_logger.experiment
+
+    loggers = [wb_logger, csv_logger, tb_logger]
 
     checkpoint_cb = ModelCheckpoint(
-        dirpath=str(output_dir / "checkpoints"),
+        dirpath=Path(wb_logger.experiment.dir) / "checkpoints",
         monitor="val_loss",
         mode="min",
         save_top_k=1,
         filename="epoch{epoch}-val_loss{val_loss:.4f}",
+        save_on_train_epoch_end=True,
     )
+
     early_stopping_callback = EarlyStopping(monitor="val_loss", patience=3, verbose=True, mode="min")
 
     precision = hparams.get("precision", "32")
@@ -159,6 +180,28 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     logger.info("Training complete")
 
+    checkpoint_dir = Path(wb_logger.experiment.dir) / "checkpoints"
+    print(checkpoint_dir)
+
+    # CREATE ARTIFACT
+    if checkpoint_dir.exists() and any(checkpoint_dir.iterdir()):
+        logger.info(f"Manual Artifact Trigger: Uploading {checkpoint_dir}")
+        try:
+            # Define the Artifact
+            folder_artifact = wandb.Artifact(name=f"model-checkpoints-{wb_logger.version}", type="model")
+            # Add the entire directory to the manifest
+            folder_artifact.add_dir(str(checkpoint_dir))
+            # Log it to the server
+            artifact = wandb.log_artifact(folder_artifact)
+            artifact.wait()  # Wait for upload to complete
+            logger.info("Artifact logged successfully")
+        except Exception as e:
+            logger.error(f"Failed to log artifact: {e}")
+    else:
+        logger.warning("Checkpoints folder is empty or missing locally.")
+        # Mandatory: Wait for the upload to hit 100%
+    wandb.finish(quiet=True)
+
     # Save profiler output to file
     if profiler:
         if isinstance(profiler, AdvancedProfiler):
@@ -168,13 +211,13 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
             with open(profiler_file, "w") as f:
                 f.write(profiler_output)
             logger.info(f"Advanced profiler output saved to: {profiler_file}")
-            print("\n" + "=" * 80)
-            print("PROFILER SUMMARY")
-            print("=" * 80)
-            print(profiler_output)
+            logger.info("\n" + "=" * 80)
+            logger.info("PROFILER SUMMARY")
+            logger.info("=" * 80)
+            logger.info(profiler_output)
         elif isinstance(profiler, PyTorchProfiler):
             logger.info(f"Profiler traces saved to: {output_dir / 'profiler'}")
-            if profiler_cfg.get("tensorboard", False):
+            if profiler_cfg is not None and profiler_cfg.get("tensorboard", False):
                 logger.info(f"View in TensorBoard: tensorboard --logdir={output_dir / 'profiler'}")
             else:
                 logger.info("View trace.json in Chrome: chrome://tracing")
@@ -210,19 +253,21 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
 
 @app.command()
 def train(
-    lr: Annotated[float, typer.Option(help="Override learning rate")] = None,
-    epochs: Annotated[int, typer.Option(help="Override epochs")] = None,
-    batch_size: Annotated[int, typer.Option(help="Override batch size")] = None,
-    num_workers: Annotated[int, typer.Option(help="Override number of data loading workers")] = None,
-    precision: Annotated[str, typer.Option(help="Override precision (e.g. 32, 16-mixed, bf16-mixed)")] = None,
-    profiler: Annotated[str, typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")] = None,
+    lr: Annotated[Optional[float], typer.Option(help="Override learning rate")] = None,
+    epochs: Annotated[Optional[int], typer.Option(help="Override epochs")] = None,
+    batch_size: Annotated[Optional[int], typer.Option(help="Override batch size")] = None,
+    num_workers: Annotated[Optional[int], typer.Option(help="Override number of data loading workers")] = None,
+    precision: Annotated[Optional[str], typer.Option(help="Override precision (e.g. 32, 16-mixed, bf16-mixed)")] = None,
+    profiler: Annotated[
+        Optional[str], typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")
+    ] = None,
     config_name: Annotated[str, typer.Option(help="Config file name")] = "default_config.yaml",
     print_config: Annotated[bool, typer.Option(help="Print config")] = False,
     experiment: Annotated[str, typer.Option(help="Choose experimental config")] = "base",
     dataset: Annotated[str, typer.Option(help="Choose dataset config")] = "base",
     logging: Annotated[str, typer.Option(help="Choose logging config")] = "base",
     optimizer: Annotated[str, typer.Option(help="Choose optimizer config (e.g. adam, sgd)")] = "adam",
-    output_path: Annotated[str, typer.Option(help="Choose model output directory")] = None,
+    output_path: Annotated[Optional[str], typer.Option(help="Choose model output directory")] = None,
 ) -> None:
     """Typer wrapper that forwards options as Hydra overrides."""
     overrides: list[str] = [
