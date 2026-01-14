@@ -1,0 +1,26 @@
+program: src/fakeartdetector/train.py
+method: bayes
+project: fake-art-detection
+entity: mlops_DTU_77
+metric:
+  name: val_loss  
+  goal: minimize
+
+# Hydra Format arguments
+command:
+  - ${env}
+  - uv
+  - run
+  - python
+  - ${program}
+  - ${args}
+
+parameters:
+  lr:
+      min: 0.0001
+      max: 0.01
+      distribution: log_uniform_values
+  batch-size:
+      values: [16, 32, 64]
+  epochs:
+      values: [2, 5, 10]
