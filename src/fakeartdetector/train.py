@@ -6,6 +6,9 @@ from typing import Annotated
 import hydra
 import pytorch_lightning as pl
 import typer
+
+# import time
+import wandb
 from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
@@ -16,7 +19,6 @@ from torch import save
 from torch.utils.data import DataLoader
 
 # import time
-import wandb
 from fakeartdetector.data import cifake
 from fakeartdetector.helpers import configure_loguru_file, get_hydra_output_dir, resolve_path
 from fakeartdetector.model import FakeArtClassifier
