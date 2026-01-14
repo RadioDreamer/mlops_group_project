@@ -1,4 +1,7 @@
 steps:
+  # ======================================================
+  # 1. Build the TRAINING Image
+  # ======================================================
   - name: 'gcr.io/cloud-builders/docker'
     id: 'Build Training Image'
     args: [
@@ -9,6 +12,9 @@ steps:
       '.'
     ]
 
+  # ======================================================
+  # 2. Build the EVALUATION Image
+  # ======================================================
   - name: 'gcr.io/cloud-builders/docker'
     id: 'Build Evaluation Image'
     args: [
@@ -19,6 +25,37 @@ steps:
       '.'
     ]
 
+  # ======================================================
+  # 3. Run Training (Produces the Model)
+  # ======================================================
+  # This container writes the model to the shared /workspace volume
+  - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
+    id: 'Run Training'
+    # IMPORTANT: Adjust the flag below to match your train.py argument!
+    # If your script uses argparse: python train.py --output /workspace/model.pth
+    # If your script uses sys.argv: python train.py /workspace/model.pth
+    args: ['--output-path', '/workspace/model.pth']
+
+  # ======================================================
+  # 4. Run Evaluation (Consumes the Model)
+  # ======================================================
+  # This container reads the model that Step 3 just created.
+  - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA'
+    id: 'Run Evaluation'
+    # IMPORTANT: Adjust the flag below to match your evaluate.py argument!
+    args: ['--model-checkpoint', '/workspace/model.pth']
+
+  # ======================================================
+  # 5. Upload Model to GCS (Persist It)
+  # ======================================================
+  # We save the model with the commit SHA so we can link code <-> model
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Upload Model'
+    args: ['cp', '/workspace/model.pth', 'gs://YOUR_BUCKET_NAME/models/model-$SHORT_SHA.pth']
+
+# ======================================================
+# 6. Push Images to Registry
+# ======================================================
 images:
   - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
   - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest'
