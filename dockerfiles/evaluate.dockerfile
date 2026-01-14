@@ -26,4 +26,4 @@ RUN uv sync --frozen
 
 RUN uv run src/fakeartdetector/data.py data/processed
 # entrypoint setup
-ENTRYPOINT ["uv", "run", "python", "src/fakeartdetector/evaluate.py", "models/model.pth"]
+ENTRYPOINT ["uv", "run", "python", "src/fakeartdetector/evaluate.py"]

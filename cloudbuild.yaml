@@ -1,0 +1,42 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Build Training Image'
+    args: [
+      'build',
+      '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA',
+      '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest',
+      '-f', './dockerfiles/train.dockerfile',
+      '.'
+    ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Build Evaluation Image'
+    args: [
+      'build',
+      '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA',
+      '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest',
+      '-f', './dockerfiles/evaluate.dockerfile',
+      '.'
+    ]
+
+  - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
+    id: 'Run Training'
+    args: ['--output-path', '/workspace/model.pth']
+
+  - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA'
+    id: 'Run Evaluation'
+    args: ['--model-checkpoint', '/workspace/model.pth']
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Upload Model'
+    args: ['cp', '/workspace/model.pth', 'gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth']
+
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest'
+
+substitutions:
+  _REGION: 'europe-west1'
+  _REPO_NAME: 'group-77-project'
