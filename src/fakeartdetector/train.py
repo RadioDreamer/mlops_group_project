@@ -258,7 +258,9 @@ def train(
     batch_size: Annotated[Optional[int], typer.Option(help="Override batch size")] = None,
     num_workers: Annotated[Optional[int], typer.Option(help="Override number of data loading workers")] = None,
     precision: Annotated[Optional[str], typer.Option(help="Override precision (e.g. 32, 16-mixed, bf16-mixed)")] = None,
-    profiler: Annotated[Optional[str], typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")] = None,
+    profiler: Annotated[
+        Optional[str], typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")
+    ] = None,
     config_name: Annotated[str, typer.Option(help="Config file name")] = "default_config.yaml",
     print_config: Annotated[bool, typer.Option(help="Print config")] = False,
     experiment: Annotated[str, typer.Option(help="Choose experimental config")] = "base",
