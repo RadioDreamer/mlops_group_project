@@ -178,3 +178,7 @@ cython_debug/
 #.idea/
 /data
 models/
+
+artifacts/
+outputs/
+wandb/

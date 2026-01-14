@@ -35,6 +35,8 @@ jobs:
         run: uv sync --frozen
 
       - name: Run tests & coverage
+        env:
+          WANDB_MODE: offline # no authentication needed
         run: |
           uv run coverage run -m pytest tests/
           uv run coverage report -m
