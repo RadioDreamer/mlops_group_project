@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 import hydra
 import pytorch_lightning as pl
@@ -200,7 +200,7 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     else:
         logger.warning("Checkpoints folder is empty or missing locally.")
         # Mandatory: Wait for the upload to hit 100%
-    wandb.finish()
+    wandb.finish(quiet=True)
 
     # Save profiler output to file
     if profiler:
@@ -211,13 +211,13 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
             with open(profiler_file, "w") as f:
                 f.write(profiler_output)
             logger.info(f"Advanced profiler output saved to: {profiler_file}")
-            print("\n" + "=" * 80)
-            print("PROFILER SUMMARY")
-            print("=" * 80)
-            print(profiler_output)
+            logger.info("\n" + "=" * 80)
+            logger.info("PROFILER SUMMARY")
+            logger.info("=" * 80)
+            logger.info(profiler_output)
         elif isinstance(profiler, PyTorchProfiler):
             logger.info(f"Profiler traces saved to: {output_dir / 'profiler'}")
-            if profiler_cfg.get("tensorboard", False):
+            if profiler_cfg is not None and profiler_cfg.get("tensorboard", False):
                 logger.info(f"View in TensorBoard: tensorboard --logdir={output_dir / 'profiler'}")
             else:
                 logger.info("View trace.json in Chrome: chrome://tracing")
@@ -253,19 +253,21 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
 
 @app.command()
 def train(
-    lr: Annotated[float, typer.Option(help="Override learning rate")] = None,
-    epochs: Annotated[int, typer.Option(help="Override epochs")] = None,
-    batch_size: Annotated[int, typer.Option(help="Override batch size")] = None,
-    num_workers: Annotated[int, typer.Option(help="Override number of data loading workers")] = None,
-    precision: Annotated[str, typer.Option(help="Override precision (e.g. 32, 16-mixed, bf16-mixed)")] = None,
-    profiler: Annotated[str, typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")] = None,
+    lr: Annotated[Optional[float], typer.Option(help="Override learning rate")] = None,
+    epochs: Annotated[Optional[int], typer.Option(help="Override epochs")] = None,
+    batch_size: Annotated[Optional[int], typer.Option(help="Override batch size")] = None,
+    num_workers: Annotated[Optional[int], typer.Option(help="Override number of data loading workers")] = None,
+    precision: Annotated[Optional[str], typer.Option(help="Override precision (e.g. 32, 16-mixed, bf16-mixed)")] = None,
+    profiler: Annotated[
+        Optional[str], typer.Option(help="Choose profiler config (none|simple|advanced|pytorch)")
+    ] = None,
     config_name: Annotated[str, typer.Option(help="Config file name")] = "default_config.yaml",
     print_config: Annotated[bool, typer.Option(help="Print config")] = False,
     experiment: Annotated[str, typer.Option(help="Choose experimental config")] = "base",
     dataset: Annotated[str, typer.Option(help="Choose dataset config")] = "base",
     logging: Annotated[str, typer.Option(help="Choose logging config")] = "base",
     optimizer: Annotated[str, typer.Option(help="Choose optimizer config (e.g. adam, sgd)")] = "adam",
-    output_path: Annotated[str, typer.Option(help="Choose model output directory")] = None,
+    output_path: Annotated[Optional[str], typer.Option(help="Choose model output directory")] = None,
 ) -> None:
     """Typer wrapper that forwards options as Hydra overrides."""
     overrides: list[str] = [
