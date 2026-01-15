@@ -25,8 +25,20 @@ steps:
     args:
       - '-c'
       - |
+        # 1. Create the exact nested folder structure
         mkdir -p /workspace/data/processed
-        gsutil -m cp -r gs://mlops_bucket_group_77/data/processed /workspace/data/processed/
+
+        # 2. List the bucket to see what is actually there (for your logs)
+        echo "Listing Bucket Contents:"
+        gsutil ls gs://mlops_bucket_group_77/data/processed/
+
+        # 3. Copy contents using a wildcard to ensure they go INTO the processed folder
+        # We use quotes around the wildcard path to prevent shell expansion issues
+        gsutil -m cp -r "gs://mlops_bucket_group_77/data/processed/*" /workspace/data/processed/
+
+        # 4. Debug: Verify what happened
+        echo "Listing Workspace Contents after download:"
+        ls -R /workspace/data
 
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
     id: 'Run Training'
