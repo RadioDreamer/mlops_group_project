@@ -5,6 +5,8 @@ RUN apt update && \
     apt install --no-install-recommends -y build-essential gcc && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
+EXPOSE $PORT
+
 # setup the workspace
 WORKDIR /app
 
@@ -22,5 +24,5 @@ COPY README.md README.md
 
 # syncing
 RUN uv sync --frozen
-EXPOSE $PORT
-ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "$PORT"]
+CMD exec uv run uvicorn src.fakeartdetector.api:app --host 0.0.0.0 --port $PORT
+# ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "$PORT"]
