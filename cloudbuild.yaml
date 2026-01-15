@@ -81,29 +81,21 @@ steps:
         echo "Listing Workspace Contents after download:"
         ls -R /workspace/data
 
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    id: "Train on Vertex AI"
-    entrypoint: "gcloud"
-    args:
-      - "ai"
-      - "custom-jobs"
-      - "create"
-      - "--region=$_REGION"
-      - "--display-name=fake-art-training-$SHORT_SHA"
-      - "--worker-pool-spec=machine-type=n1-standard-4,accelerator-type=NVIDIA_TESLA_T4,accelerator-count=1,replica-count=1,container-image-uri=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
-      - "--args=--dataset=cloud,dataset.dataset.path=gs://mlops_bucket_group_77/data/processed,dataset.savedTo.path=gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth"
+  - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
+    id: "Run Training"
+    args: ["--dataset", "cloud"]
     secretEnv: ["WANDB_API_KEY"]
     env:
       - "WANDB_PROJECT=fake-art-detection"
       - "WANDB_ENTITY=mlops_DTU_77"
 
   - name: "gcr.io/cloud-builders/gsutil"
-    id: "Download Model"
+    id: "Upload Model"
     args:
       [
         "cp",
-        "gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth",
         "/workspace/model.pth",
+        "gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth",
       ]
 
   - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA"
