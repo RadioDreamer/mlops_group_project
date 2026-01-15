@@ -52,7 +52,7 @@ jobs:
           uv run dvc pull
         env:
           # This secret must contain your GDrive service account JSON or credentials
-          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GCP_CREDENTIALS_DATA }}
 
       - name: Run tests & coverage
         run: |
