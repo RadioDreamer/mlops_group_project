@@ -1,0 +1,6 @@
+dataset:
+    path: '/workspace/data'
+    noise_level: 0.05
+
+savedTo:
+    path: '/workspace/model.pth'

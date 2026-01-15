@@ -21,12 +21,12 @@ steps:
 
   - name: 'gcr.io/cloud-builders/gsutil'
     id: 'Download Data'
+    entrypoint: 'bash'
     args:
-      - '-m'
-      - 'cp'
-      - '-r'
-      - 'gs://mlops_bucket_group_77/data/processed'
-      - '/workspace/data/'
+      - '-c'
+      - |
+        mkdir -p /workspace/data
+        gsutil -m cp -r gs://mlops_bucket_group_77/data/processed /workspace/data/
 
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
     id: 'Run Training'
