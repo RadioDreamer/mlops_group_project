@@ -1,31 +1,31 @@
 steps:
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Build Training Image"
-    args:
-      [
-        "build",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest",
-        "-f",
-        "./dockerfiles/train.dockerfile",
-        ".",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Build Training Image"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest",
+  #       "-f",
+  #       "./dockerfiles/train.dockerfile",
+  #       ".",
+  #     ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Build Evaluation Image"
-    args:
-      [
-        "build",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest",
-        "-f",
-        "./dockerfiles/evaluate.dockerfile",
-        ".",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Build Evaluation Image"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest",
+  #       "-f",
+  #       "./dockerfiles/evaluate.dockerfile",
+  #       ".",
+  #     ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Build API Image"
@@ -41,21 +41,21 @@ steps:
         ".",
       ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Push Training Image"
-    args:
-      [
-        "push",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Push Training Image"
+  #   args:
+  #     [
+  #       "push",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+  #     ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Push Evaluation Image"
-    args:
-      [
-        "push",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Push Evaluation Image"
+  #   args:
+  #     [
+  #       "push",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
+  #     ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Push API Image"
@@ -65,50 +65,51 @@ steps:
         "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/api-image:$SHORT_SHA",
       ]
 
-  - name: "gcr.io/cloud-builders/gsutil"
-    id: "Download Data"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        mkdir -p /workspace/data/processed
+  # - name: "gcr.io/cloud-builders/gsutil"
+  #   id: "Download Data"
+  #   entrypoint: "bash"
+  #   args:
+  #     - "-c"
+  #     - |
+  #       mkdir -p /workspace/data/processed
 
-        echo "Listing Bucket Contents:"
-        gsutil ls gs://mlops_bucket_group_77/data/processed/
+  #       echo "Listing Bucket Contents:"
+  #       gsutil ls gs://mlops_bucket_group_77/data/processed/
 
-        gsutil -m cp -r "gs://mlops_bucket_group_77/data/processed/*" /workspace/data/processed/
+  #       gsutil -m cp -r "gs://mlops_bucket_group_77/data/processed/*" /workspace/data/processed/
 
-        echo "Listing Workspace Contents after download:"
-        ls -R /workspace/data
+  #       echo "Listing Workspace Contents after download:"
+  #       ls -R /workspace/data
 
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    id: "Train on Vertex AI"
-    entrypoint: "gcloud"
-    args:
-      - "ai"
-      - "custom-jobs"
-      - "create"
-      - "--region=$_REGION"
-      - "--display-name=fake-art-training-$SHORT_SHA"
-      - "--worker-pool-spec=machine-type=n1-standard-4,accelerator-type=NVIDIA_TESLA_T4,accelerator-count=1,replica-count=1,container-image-uri=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
-      - "--args=--dataset=cloud,dataset.dataset.path=gs://mlops_bucket_group_77/data/processed,dataset.savedTo.path=gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth"
-    secretEnv: ["WANDB_API_KEY"]
-    env:
-      - "WANDB_PROJECT=fake-art-detection"
-      - "WANDB_ENTITY=mlops_DTU_77"
+  # - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  #   id: "Train on Vertex AI"
+  #   entrypoint: "gcloud"
+  #   args:
+  #     - "ai"
+  #     - "custom-jobs"
+  #     - "create"
+  #     - "--region=$_REGION"
+  #     - "--display-name=fake-art-training-$SHORT_SHA"
+  #     - "--worker-pool-spec=machine-type=n1-standard-4,accelerator-type=NVIDIA_TESLA_T4,accelerator-count=1,replica-count=1,container-image-uri=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
+  #     - "--args=--dataset=cloud,dataset.dataset.path=gs://mlops_bucket_group_77/data/processed,dataset.savedTo.path=gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth"
+  #     - "--stream-logs"
+  #   secretEnv: ["WANDB_API_KEY"]
+  #   env:
+  #     - "WANDB_PROJECT=fake-art-detection"
+  #     - "WANDB_ENTITY=mlops_DTU_77"
 
   - name: "gcr.io/cloud-builders/gsutil"
     id: "Download Model"
-    args:
-      [
+    args: [
         "cp",
-        "gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth",
+        "gs://mlops_bucket_group_77/models/model-2de8de7.pth",
+        # "gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth",
         "/workspace/model.pth",
       ]
 
-  - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA"
-    id: "Run Evaluation"
-    args: ["--dataset", "cloud"]
+  # - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA"
+  #   id: "Run Evaluation"
+  #   args: ["--dataset", "cloud"]
 
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy API"
@@ -124,10 +125,6 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
-      - "--memory"
-      - "4Gi"
-      - "--cpu"
-      - "1"
       - "--set-env-vars"
       - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth"
 
