@@ -43,6 +43,10 @@ steps:
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
     id: 'Run Training'
     args: ['--dataset', 'cloud']
+    env:
+      - 'WANDB_MODE=offline'
+      - 'WANDB_PROJECT=debug-build'
+      - 'WANDB_ENTITY=debug-user'
 
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA'
     id: 'Run Evaluation'
