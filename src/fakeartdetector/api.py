@@ -30,13 +30,34 @@ async def lifespan(app: FastAPI):
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     model = FakeArtClassifier().to(DEVICE)
-    state_dict = load("./models/base_model.pth", map_location=DEVICE)
 
     bucket_name = os.environ.get("GCS_BUCKET_NAME")
     model_file = os.environ.get("MODEL_FILE")
     local_model_path = "model.pth"
-    download_model(bucket_name, model_file, local_model_path)
-    model.load_state_dict(state_dict)
+
+    state_dict = None
+
+    if bucket_name and model_file:
+        try:
+            print(f"Attempting to download model from gs://{bucket_name}/{model_file}")
+            download_model(bucket_name, model_file, local_model_path)
+            state_dict = load(local_model_path, map_location=DEVICE)
+            print("Successfully loaded downloaded model")
+        except Exception as e:
+            print(f"Failed to download or load model from GCS: {e}")
+            print("Using fallback model provided in image")
+    
+    if state_dict is None:
+         # Fallback to local base model
+         if os.path.exists("./models/base_model.pth"):
+            print("Loading base_model.pth from image")
+            state_dict = load("./models/base_model.pth", map_location=DEVICE)
+         else:
+            print("No model found! Initializing random weights.")
+
+    if state_dict:
+        model.load_state_dict(state_dict)
+
     transform = T.Compose(
         [
             T.Resize((32, 32)),
@@ -45,8 +66,9 @@ async def lifespan(app: FastAPI):
     )
 
     print(f"Model: {model}\n")
-    for i, key in enumerate(state_dict.keys()):
-        print(f"{i}: {key}")
+    if state_dict:
+        for i, key in enumerate(state_dict.keys()):
+            print(f"{i}: {key}")
     print("Model state dict loaded successfully\n")
 
     yield

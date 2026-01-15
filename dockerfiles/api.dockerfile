@@ -24,5 +24,5 @@ COPY README.md README.md
 
 # syncing
 RUN uv sync --frozen
-CMD exec uv run uvicorn src.fakeartdetector.api:app --host 0.0.0.0 --port $PORT
+CMD exec uv run uvicorn src.fakeartdetector.api:app --host 0.0.0.0 --port ${PORT:-8080}
 # ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "$PORT"]
