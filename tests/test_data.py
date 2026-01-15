@@ -20,6 +20,28 @@ def dummy_labels():
     return torch.tensor([1, 0, 1, 0])
 
 
+@pytest.mark.skipif(not os.path.exists(_PATH_DATA), reason="Data files not found")
+def test_dvc_pull_result():
+    """Tests the loading, shape, and label integrity of CIFAKE dataset."""
+    train_set, test_set = cifake(_PATH_DATA)
+
+    # Check dataset lengths: ensure non-empty datasets and a reasonable train/test proportion
+    train_len = len(train_set)
+    test_len = len(test_set)
+    assert train_len > 0 and test_len > 0, "Train and test datasets should be non-empty"
+    assert train_len >= test_len, "Train dataset should be at least as large as test dataset"
+
+    # Check shapes: CIFAKE is RGB 32x32
+    # train_set[0] returns (image, label)
+    img, _ = train_set[0]
+    assert img.shape == (3, 32, 32), "Image shape should be [3, 32, 32]"
+
+    # Check that all labels are represented (0 for Real, 1 for Fake)
+    # Using torch.unique to ensure we only have two classes
+    labels = torch.unique(train_set.tensors[1])
+    assert torch.equal(labels, torch.tensor([0, 1])), "Labels should only contain 0 and 1"
+
+
 def test_normalize(dummy_images):
     normed = normalize(dummy_images)
     # Check shape unchanged
