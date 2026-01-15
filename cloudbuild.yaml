@@ -125,6 +125,10 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
+      - "--memory"
+      - "4Gi"
+      - "--cpu"
+      - "1"
       - "--set-env-vars"
       - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth"
 
@@ -132,10 +136,10 @@ substitutions:
   _REGION: "europe-west1"
   _REPO_NAME: "group-77-project"
 
-availableSecrets:
-  secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/wandb-api-key/versions/latest
-      # env: "WANDB_API_KEY"
+# availableSecrets:
+#   secretManager:
+#     - versionName: projects/$PROJECT_ID/secrets/wandb-api-key/versions/latest
+#       env: "WANDB_API_KEY"
 
 options:
   logging: CLOUD_LOGGING_ONLY
