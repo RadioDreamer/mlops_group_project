@@ -43,10 +43,10 @@ steps:
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
     id: 'Run Training'
     args: ['--dataset', 'cloud']
+    secretEnv: ['WANDB_API_KEY']
     env:
-      - 'WANDB_MODE=offline'
-      - 'WANDB_PROJECT=debug-build'
-      - 'WANDB_ENTITY=debug-user'
+      - 'WANDB_PROJECT=fake-art-detection'
+      - 'WANDB_ENTITY=mlops_DTU_77'
 
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA'
     id: 'Run Evaluation'
@@ -65,6 +65,11 @@ images:
 substitutions:
   _REGION: 'europe-west1'
   _REPO_NAME: 'group-77-project'
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/wandb-api-key/versions/latest
+    env: 'WANDB_API_KEY'
 
 options:
   logging: CLOUD_LOGGING_ONLY
