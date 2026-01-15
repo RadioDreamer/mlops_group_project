@@ -6,11 +6,21 @@ from typing import cast
 
 import torchvision.transforms as T  # noqa:N812
 from fastapi import FastAPI, File, UploadFile
+from google.cloud import storage
 from PIL import Image
 from torch import Tensor, cuda, device, load, no_grad, sigmoid, unsqueeze
 from torch.backends import mps
 
 from fakeartdetector.model import FakeArtClassifier
+
+
+def download_model(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
+    print(f"Downloaded {source_blob_name} to {destination_file_name}.")
 
 
 @asynccontextmanager
@@ -21,6 +31,11 @@ async def lifespan(app: FastAPI):
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     model = FakeArtClassifier().to(DEVICE)
     state_dict = load("./models/base_model.pth", map_location=DEVICE)
+
+    bucket_name = os.environ.get("GCS_BUCKET_NAME")
+    model_file = os.environ.get("MODEL_FILE")
+    local_model_path = "model.pth"
+    download_model(bucket_name, model_file, local_model_path)
     model.load_state_dict(state_dict)
     transform = T.Compose(
         [
