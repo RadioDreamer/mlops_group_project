@@ -22,5 +22,6 @@ COPY README.md README.md
 
 # syncing
 RUN uv sync --frozen
+EXPOSE 8080
 
-ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "8080"]
