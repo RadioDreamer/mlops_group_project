@@ -21,7 +21,7 @@ def dummy_labels():
 
 
 @pytest.mark.skipif(not os.path.exists(_PATH_DATA), reason="Data files not found")
-def test_data():
+def test_dvc_pull_result():
     """Tests the loading, shape, and label integrity of CIFAKE dataset."""
     train_set, test_set = cifake(_PATH_DATA)
 
