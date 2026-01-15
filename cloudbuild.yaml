@@ -83,7 +83,7 @@ steps:
 
   - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
     id: "Run Training"
-    args: ["--dataset", "cloud"]
+    args: ["--dataset", "cloud", "--experiment", "cloud"]
     secretEnv: ["WANDB_API_KEY"]
     env:
       - "WANDB_PROJECT=fake-art-detection"

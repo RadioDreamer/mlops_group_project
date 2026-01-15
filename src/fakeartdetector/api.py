@@ -48,14 +48,14 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"Failed to download or load model from GCS: {e}")
             print("Using fallback model provided in image")
-    
+
     if state_dict is None:
-         # Fallback to local base model
-         if os.path.exists("./models/base_model.pth"):
+        # Fallback to local base model
+        if os.path.exists("./models/base_model.pth"):
             print("Loading base_model.pth from image")
             state_dict = load("./models/base_model.pth", map_location=DEVICE)
             loaded_model_source = "Local base_model.pth"
-         else:
+        else:
             print("No model found! Initializing random weights.")
             loaded_model_source = "Random Weights (No model found)"
 
@@ -105,7 +105,7 @@ def model_info():
         "device": str(DEVICE),
         "model": str(model),
         "model_device": str(next(model.parameters()).device),
-        "loaded_model_source": loaded_model_source
+        "loaded_model_source": loaded_model_source,
     }
 
 
