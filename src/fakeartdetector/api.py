@@ -4,15 +4,13 @@ from http import HTTPStatus
 from io import BytesIO
 from typing import cast
 
-import torchvision.transforms as T
+import torchvision.transforms as T  # noqa:N812
 from fastapi import FastAPI, File, UploadFile
 from PIL import Image
 from torch import Tensor, cuda, device, load, no_grad, sigmoid, unsqueeze
 from torch.backends import mps
 
 from fakeartdetector.model import FakeArtClassifier
-
-database = {"username": [], "password": []}
 
 
 @asynccontextmanager
@@ -86,16 +84,6 @@ async def model_inference(data: UploadFile = File(...)):
         prob = sigmoid(logits)
         is_ai = (prob > 0.5).item()
     return {"isAI": is_ai, "probability": prob.item()}
-    # with open("image.jpg", "wb") as image:
-    #    content = await data.read()
-    #    image.write(content)
-    # this would be a file response
-    # return FileResponse(
-    #    "resized_img.jpg",
-    #    media_type="image/jpeg",
-    #    filename="resized_img.jpg",
-    #    status_code=HTTPStatus.OK,
-    # )
 
 
 async def image_clean_utility(image_bytes: bytes):
