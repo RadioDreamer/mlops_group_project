@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 import typer
 import wandb
 from dotenv import load_dotenv
+from google.cloud import storage
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -29,6 +30,35 @@ app = typer.Typer()
 # OFF -> CRITICAL -> ERROR -> WARNING -> INFO -> DEBUG
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "configs"
+
+
+def download_folder_from_gcs(gcs_path, local_path):
+    # gcs_path: gs://bucket/folder/
+    parts = gcs_path.replace("gs://", "").split("/")
+    bucket_name = parts[0]
+    prefix = "/".join(parts[1:])
+    
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blobs = bucket.list_blobs(prefix=prefix)
+    
+    local_path = Path(local_path)
+    local_path.mkdir(parents=True, exist_ok=True)
+    
+    logger.info(f"Downloading data from {gcs_path} to {local_path}...")
+    for blob in blobs:
+        # Avoid directories
+        if blob.name.endswith("/"):
+            continue
+        # Check if file is in the subfolder we want
+        rel_path = str(blob.name).replace(prefix, "").lstrip("/")
+        if not rel_path: 
+            continue # Skip if it matches prefix exactly
+        dest_path = local_path / rel_path
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        blob.download_to_filename(str(dest_path))
+        # logger.info(f"Downloaded {blob.name}")
+    logger.info("Download complete.")
 
 
 def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
@@ -60,7 +90,15 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     model = FakeArtClassifier(lr=hparams["lr"], dropout=hparams["dropout"], optimizer_cfg=cfg.optimizer)
     logger.info(f"Loaded Model onto memory: \n{model}")
 
-    train_set, val_set = cifake(processed_dir=cfg.dataset.dataset.path)
+    # Handle Data Loading (GCS vs Local)
+    data_path = cfg.dataset.dataset.path
+    if data_path.startswith("gs://"):
+        local_data_path = "data/processed"
+        download_folder_from_gcs(data_path, local_data_path)
+        train_set, val_set = cifake(processed_dir=local_data_path)
+    else:
+        train_set, val_set = cifake(processed_dir=data_path)
+
     logger.info("Loaded training set")
 
     num_workers_cfg = hparams.get("num_workers", None)
@@ -219,10 +257,35 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
             else:
                 logger.info("View trace.json in Chrome: chrome://tracing")
 
-    model_path = resolve_path(cfg.dataset.savedTo.path)
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    save(model.state_dict(), str(model_path))
-    logger.info(f"Saved model to: {model_path}")
+    save_path = cfg.dataset.savedTo.path
+    if save_path.startswith("gs://"):
+        # Local save first
+        local_path = "model.pth"
+        save(model.state_dict(), local_path)
+        logger.info(f"Saved model locally to: {local_path}")
+        
+        # Parse bucket and blob
+        # gs://bucket_name/path/to/model.pth
+        try:
+            parts = save_path.replace("gs://", "").split("/")
+            bucket_name = parts[0]
+            blob_name = "/".join(parts[1:])
+            
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+            blob.upload_from_filename(local_path)
+            logger.info(f"Uploaded model to GCS: {save_path}")
+        except Exception as e:
+            logger.error(f"Failed to upload model to GCS: {e}")
+            
+        # For compatibility with subsequent logic
+        model_path = Path(local_path)
+    else:
+        model_path = resolve_path(cfg.dataset.savedTo.path)
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+        save(model.state_dict(), str(model_path))
+        logger.info(f"Saved model to: {model_path}")
 
     # Log TensorBoard info
     tb_log_dir = output_dir / "tensorboard"
