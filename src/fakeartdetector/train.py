@@ -311,8 +311,9 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
     logger.info(f"Saved artifacts manifest to: {artifacts_path}")
 
 
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def train(
+    ctx: typer.Context,
     lr: Annotated[Optional[float], typer.Option(help="Override learning rate")] = None,
     epochs: Annotated[Optional[int], typer.Option(help="Override epochs")] = None,
     batch_size: Annotated[Optional[int], typer.Option(help="Override batch size")] = None,
@@ -347,6 +348,10 @@ def train(
         overrides.append(f"experiment.hyperparameters.precision={precision}")
     if profiler is not None:
         overrides.append(f"profiler={profiler}")
+
+    # Add any extra arguments passed to the CLI (e.g. dataset.savedTo.path=...)
+    if ctx.args:
+        overrides.extend(ctx.args)
 
     # Build a Hydra-decorated runner so Hydra (not Typer) owns config parsing.
     decorated = hydra.main(
