@@ -25,6 +25,5 @@ COPY README.md README.md
 # syncing
 RUN uv sync --frozen
 
-RUN uv run src/fakeartdetector/data.py data/processed
 # entrypoint setup
 ENTRYPOINT ["uv", "run", "python", "src/fakeartdetector/train.py"]

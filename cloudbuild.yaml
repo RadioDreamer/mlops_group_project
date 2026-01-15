@@ -19,13 +19,22 @@ steps:
       '.'
     ]
 
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Download Data'
+    args:
+      - '-m'
+      - 'cp'
+      - '-r'
+      - 'gs://mlops_bucket_group_77/data/processed'
+      - '/workspace/data'
+
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA'
     id: 'Run Training'
-    args: ['--output-path', '/workspace/model.pth']
+    args: ['--dataset', 'cloud']
 
   - name: '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA'
     id: 'Run Evaluation'
-    args: ['--model-checkpoint', '/workspace/model.pth']
+    args: ['--dataset', 'cloud']
 
   - name: 'gcr.io/cloud-builders/gsutil'
     id: 'Upload Model'
