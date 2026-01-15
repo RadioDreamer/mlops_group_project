@@ -125,6 +125,10 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
+      - "--memory"
+      - "4Gi"
+      - "--cpu"
+      - "1"
       - "--set-env-vars"
       - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth"
 
