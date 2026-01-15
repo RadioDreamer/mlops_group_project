@@ -34,6 +34,17 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      # 1. Authenticate to Google Cloud using your JSON key secret
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_DATA }}
+
+      # 2. Now run dvc pull (it will automatically find the credentials from the step above)
+      - name: Get data from DVC
+        run: |
+          uv run dvc pull
+
       - name: Run tests & coverage
         env:
           WANDB_MODE: offline # no authentication needed
