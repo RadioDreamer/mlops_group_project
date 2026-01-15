@@ -26,7 +26,7 @@ def download_model(bucket_name, source_blob_name, destination_file_name):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Loads the model and gets ready for inference"""
-    global model, DEVICE, transform
+    global model, DEVICE, transform, loaded_model_source
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     model = FakeArtClassifier().to(DEVICE)
@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI):
     local_model_path = "model.pth"
 
     state_dict = None
+    loaded_model_source = "None"
 
     if bucket_name and model_file:
         try:
@@ -43,6 +44,7 @@ async def lifespan(app: FastAPI):
             download_model(bucket_name, model_file, local_model_path)
             state_dict = load(local_model_path, map_location=DEVICE)
             print("Successfully loaded downloaded model")
+            loaded_model_source = f"gs://{bucket_name}/{model_file}"
         except Exception as e:
             print(f"Failed to download or load model from GCS: {e}")
             print("Using fallback model provided in image")
@@ -52,8 +54,10 @@ async def lifespan(app: FastAPI):
          if os.path.exists("./models/base_model.pth"):
             print("Loading base_model.pth from image")
             state_dict = load("./models/base_model.pth", map_location=DEVICE)
+            loaded_model_source = "Local base_model.pth"
          else:
             print("No model found! Initializing random weights.")
+            loaded_model_source = "Random Weights (No model found)"
 
     if state_dict:
         model.load_state_dict(state_dict)
@@ -101,6 +105,7 @@ def model_info():
         "device": str(DEVICE),
         "model": str(model),
         "model_device": str(next(model.parameters()).device),
+        "loaded_model_source": loaded_model_source
     }
 
 
