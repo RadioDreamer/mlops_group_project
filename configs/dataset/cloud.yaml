@@ -1,5 +1,5 @@
 dataset:
-    path: '/workspace/data'
+    path: '/workspace/data/processed'
     noise_level: 0.05
 
 savedTo:
