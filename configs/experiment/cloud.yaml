@@ -1,0 +1,7 @@
+hyperparameters:
+  dropout: 0.3
+  batch_size: 32
+  lr: 1e-3
+  epochs: 4
+  seed: 420
+  precision: "32"

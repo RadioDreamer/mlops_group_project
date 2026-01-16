@@ -1,12 +1,28 @@
-FROM ghcr.io/astral-sh/uv:python3.11-alpine AS base
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-COPY uv.lock uv.lock
-COPY pyproject.toml pyproject.toml
+# installing system dependencies
+RUN apt update && \
+    apt install --no-install-recommends -y build-essential gcc && \
+    apt clean && rm -rf /var/lib/apt/lists/*
 
-RUN uv sync --frozen --no-install-project
+EXPOSE $PORT
 
-COPY src src/
+# setup the workspace
+WORKDIR /app
 
+# copying dependencies files first
+COPY uv.lock pyproject.toml ./
+
+# installing dependencies
+RUN uv sync --frozen --no-cache --no-install-project
+
+# copyng the rest of the project
+COPY src/ src/
+COPY models/ models/
+COPY configs/ configs/
+COPY README.md README.md
+
+# syncing
 RUN uv sync --frozen
-
-ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD exec uv run uvicorn src.fakeartdetector.api:app --host 0.0.0.0 --port ${PORT:-8080}
+# ENTRYPOINT ["uv", "run", "uvicorn", "src.fakeartdetector.api:app", "--host", "0.0.0.0", "--port", "$PORT"]
