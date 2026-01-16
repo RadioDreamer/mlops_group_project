@@ -23,9 +23,9 @@
 * [x] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15) Ioannis
 
 ### Week 1 Tech Debt
-* [x] Ensure data is not loaded when its cached => THIS IS FINE, SINCE DATA IS 100MB
-* [x] Ensure train.dockerfile only loads the training data => THIS IS FINE, SINCE DATA IS 100MB
-* [x] Ensure evaluate.dockerfile only loads the test data => THIS IS FINE, SINCE DATA IS 100MB
+* [x] Ensure data is not loaded when its cached 
+* [x] Ensure train.dockerfile only loads the training data 
+* [x] Ensure evaluate.dockerfile only loads the test data 
 * [x] Update README.md to reflect latest state of the project
 
 ### Week 2
