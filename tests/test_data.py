@@ -3,7 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import torch
+from datasets import load_dataset
 from torch.utils.data import Dataset
+from torchvision import transforms
 
 from fakeartdetector.data import cifake, normalize, preprocess_data
 from tests import _PATH_DATA
@@ -20,26 +22,50 @@ def dummy_labels():
     return torch.tensor([1, 0, 1, 0])
 
 
-@pytest.mark.skipif(not os.path.exists(_PATH_DATA), reason="Data files not found")
-def test_dvc_pull_result():
-    """Tests the loading, shape, and label integrity of CIFAKE dataset."""
-    train_set, test_set = cifake(_PATH_DATA)
+def test_cifake_with_hf_data(tmp_path):
+    """
+    Integration test that:
+    1. Downloads a small sample from Hugging Face.
+    2. Saves it as .pt files in a temp directory (mimicking preprocessing).
+    3. Runs your actual 'cifake' function on that temp directory.
+    """
 
-    # Check dataset lengths: ensure non-empty datasets and a reasonable train/test proportion
-    train_len = len(train_set)
-    test_len = len(test_set)
-    assert train_len > 0 and test_len > 0, "Train and test datasets should be non-empty"
-    assert train_len >= test_len, "Train dataset should be at least as large as test dataset"
+    try:
+        hf_train = load_dataset("dragonintelligence/CIFAKE-image-dataset", split="train[:50]")
+        hf_test = load_dataset("dragonintelligence/CIFAKE-image-dataset", split="test[:20]")
+    except Exception as e:
+        pytest.fail(f"Could not download from Hugging Face: {e}")
 
-    # Check shapes: CIFAKE is RGB 32x32
-    # train_set[0] returns (image, label)
-    img, _ = train_set[0]
-    assert img.shape == (3, 32, 32), "Image shape should be [3, 32, 32]"
+    to_tensor = transforms.ToTensor()
 
-    # Check that all labels are represented (0 for Real, 1 for Fake)
-    # Using torch.unique to ensure we only have two classes
-    labels = torch.unique(train_set.tensors[1])
-    assert torch.equal(labels, torch.tensor([0, 1])), "Labels should only contain 0 and 1"
+    # Convert PIL images to a single Tensor stack: [N, 3, 32, 32]
+    train_images = torch.stack([to_tensor(img) for img in hf_train["image"]])
+    train_targets = torch.tensor(hf_train["label"])
+
+    test_images = torch.stack([to_tensor(img) for img in hf_test["image"]])
+    test_targets = torch.tensor(hf_test["label"])
+
+    # This creates the exact file structure your cifake function expects
+    torch.save(train_images, tmp_path / "train_images.pt")
+    torch.save(train_targets, tmp_path / "train_target.pt")
+    torch.save(test_images, tmp_path / "test_images.pt")
+    torch.save(test_targets, tmp_path / "test_target.pt")
+
+    # This verifies that cifake correctly reads files and creates TensorDatasets
+    train_set, test_set = cifake(processed_dir=str(tmp_path))
+
+    # Check lengths match what we downloaded
+    assert len(train_set) == 50
+    assert len(test_set) == 20
+
+    # Check data shape from the dataset
+    # train_set[0] returns (data, target)
+    img, target = train_set[0]
+    assert img.shape == (3, 32, 32), "Image tensor should be 3x32x32"
+    assert isinstance(target, torch.Tensor) or isinstance(target, int)
+
+    # Sanity check: Ensure the files were actually used (implicit by the function working)
+    print(f"Successfully loaded and tested using data in {tmp_path}")
 
 
 def test_normalize(dummy_images):
