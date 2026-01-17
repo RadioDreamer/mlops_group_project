@@ -6,7 +6,6 @@ from typing import Annotated, Optional
 import hydra
 import pytorch_lightning as pl
 import typer
-import wandb
 from dotenv import load_dotenv
 from google.cloud import storage
 from loguru import logger
@@ -17,6 +16,7 @@ from pytorch_lightning.profilers import AdvancedProfiler, PyTorchProfiler, Simpl
 from torch import save
 from torch.utils.data import DataLoader
 
+import wandb
 from fakeartdetector.data import cifake
 from fakeartdetector.helpers import configure_loguru_file, get_hydra_output_dir, resolve_path
 from fakeartdetector.model import FakeArtClassifier
