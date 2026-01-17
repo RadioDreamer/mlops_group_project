@@ -2,11 +2,10 @@ import os
 import sys
 from pathlib import Path
 from typing import Annotated, Optional
-
+import wandb
 import hydra
 import pytorch_lightning as pl
 import typer
-import wandb
 from dotenv import load_dotenv
 from google.cloud import storage
 from loguru import logger
@@ -16,6 +15,7 @@ from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger, WandbLogger
 from pytorch_lightning.profilers import AdvancedProfiler, PyTorchProfiler, SimpleProfiler
 from torch import save
 from torch.utils.data import DataLoader
+
 
 from fakeartdetector.data import cifake
 from fakeartdetector.helpers import configure_loguru_file, get_hydra_output_dir, resolve_path
