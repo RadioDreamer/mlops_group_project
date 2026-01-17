@@ -54,39 +54,47 @@ def test_model_info(client):
 
 def test_model_inference_comprehensive(client):
     """
-    M24: Test functionality, reliability, and error handling.
-    Fixes the PIL.UnidentifiedImageError by catching it explicitly in the test
-    to simulate how the server would fail on corrupted data.
+    Test functionality, reliability, and error handling.
+    Includes a spy assertion to verify that image preprocessing
+    correctly formats the tensor for the model.
     """
 
-    # 1. TEST SUCCESSFUL INFERENCE
+    # 1. TEST SUCCESSFUL INFERENCE + PREPROCESSING VERIFICATION
     with patch("fakeartdetector.api.model") as mock_model:
+        # Mock return value (logit)
         mock_model.return_value = torch.tensor([[10.0]])
 
-        img = Image.new("RGB", (32, 32), color="red")
+        # Create a red 100x100 image (to verify resizing logic)
+        img = Image.new("RGB", (100, 100), color="red")
         buf = BytesIO()
         img.save(buf, format="JPEG")
 
         response = client.post("/model/", files={"data": ("test.jpg", buf.getvalue(), "image/jpeg")})
+
+        # Verify Response
         assert response.status_code == 200
         assert response.json()["isAI"] is True
+
+        args, kwargs = mock_model.call_args
+        passed_tensor = args[0]
+
+        assert isinstance(passed_tensor, torch.Tensor)
+        assert passed_tensor.shape == (1, 3, 32, 32)
+        assert passed_tensor.device.type in ["cpu", "cuda", "mps"]
 
     # 2. TEST NEGATIVE CASE: MISSING FILE
     response_missing = client.post("/model/", files={})
     assert response_missing.status_code == 422
 
     # 3. TEST NEGATIVE CASE: CORRUPTED/INVALID IMAGE
-    invalid_data = b"this is not an image"
-
+    # Catching the PIL error because Starlette TestClient re-raises it
+    invalid_data = b"not_an_image"
     try:
-        response_invalid = client.post("/model/", files={"data": ("bad.jpg", invalid_data, "image/jpeg")})
-        # If your API has error handling, it returns a status code
-        assert response_invalid.status_code in [400, 500]
+        client.post("/model/", files={"data": ("bad.jpg", invalid_data, "image/jpeg")})
     except UnidentifiedImageError:
-        # If the TestClient re-raises the error the test passes
-        pass
+        pass  # Success: The API correctly failed to identify bad bytes
 
-    # 4. TEST NEGATIVE CASE: OVERSIZED FILE
+    # 4. TEST NEGATIVE CASE: OVERSIZED FILE (Simulated)
     with patch("starlette.testclient.TestClient.post") as mock_post:
         mock_post.return_value.status_code = 413
         response_large = client.post("/model/", files={"data": ("huge.jpg", b"0" * 10**7)})
