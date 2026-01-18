@@ -54,4 +54,3 @@ jobs:
     - name: Test model
       run: |
         uv run pytest tests/test_stage_model.py
-
