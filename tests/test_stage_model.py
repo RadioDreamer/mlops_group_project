@@ -2,9 +2,12 @@ import os
 import time
 
 import torch
-
 import wandb
+from dotenv import load_dotenv
+
 from fakeartdetector.model import FakeArtClassifier
+
+load_dotenv()
 
 
 def load_model(artifact_path):
