@@ -87,12 +87,10 @@ def test_model_inference_comprehensive(client):
     assert response_missing.status_code == 422
 
     # 3. TEST NEGATIVE CASE: CORRUPTED/INVALID IMAGE
-    # Catching the PIL error because Starlette TestClient re-raises it
+    # Expecting PIL to raise UnidentifiedImageError because Starlette TestClient re-raises it
     invalid_data = b"not_an_image"
-    try:
+    with pytest.raises(UnidentifiedImageError):
         client.post("/model/", files={"data": ("bad.jpg", invalid_data, "image/jpeg")})
-    except UnidentifiedImageError:
-        pass  # Success: The API correctly failed to identify bad bytes
 
     # 4. TEST NEGATIVE CASE: OVERSIZED FILE (Simulated)
     with patch("starlette.testclient.TestClient.post") as mock_post:
