@@ -182,3 +182,4 @@ models/
 artifacts/
 outputs/
 wandb/
+staged_model_dir/
