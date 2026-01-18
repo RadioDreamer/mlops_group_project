@@ -1,17 +1,13 @@
-import onnx
-import torch
-import numpy as np
-import sys
 import time
 from statistics import mean, stdev
 
+import numpy as np
+import onnx
 import onnxruntime as ort
 import torch
-import torchvision
-
+import typer
 
 from fakeartdetector.model import FakeArtClassifier
-import typer
 
 app = typer.Typer()
 model = FakeArtClassifier()
@@ -20,15 +16,18 @@ ort_session = ort.InferenceSession("fakeartclassifier.onnx")
 dummy_input = torch.randn(1, 3, 32, 32)
 
 
-
 @app.command()
 def doruntime():
     import onnxruntime as rt
+
     ort_session = rt.InferenceSession("fakeartclassifier.onnx")
     input_names = [i.name for i in ort_session.get_inputs()]
     output_names = [i.name for i in ort_session.get_outputs()]
     batch = {input_names[0]: np.random.randn(1, 3, 32, 32).astype(np.float32)}
     out = ort_session.run(output_names, batch)
+    out_array = out[0]
+    print(f"ONNX Runtime output shape: {out_array.shape}")
+
 
 @app.command()
 def exporttoonnx():
@@ -44,20 +43,21 @@ def exporttoonnx():
         export_params=True,
         opset_version=14,
         do_constant_folding=True,
-        input_names=['input'],
-        output_names=['output'],
-        dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+        input_names=["input"],
+        output_names=["output"],
+        dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
     )
     print("ONNX model exported successfully to fakeartclassifier.onnx")
 
+
 @app.command()
 def validateonnx():
-    import onnx
     model = onnx.load("fakeartclassifier.onnx")
     onnx.checker.check_model(model)
     print(onnx.printer.to_text(model.graph))
     # if the above does not make any sense, we can also use the following package top visualize the model
     # uv run netron fakeartclassifier.onnx
+
 
 def timing_decorator(func, function_repeat: int = 10, timing_repeat: int = 5):
     """Decorator that times the execution of a function."""
@@ -76,6 +76,7 @@ def timing_decorator(func, function_repeat: int = 10, timing_repeat: int = 5):
 
     return wrapper
 
+
 @timing_decorator
 def torch_predict(image) -> None:
     """Predict using PyTorch model."""
@@ -86,6 +87,7 @@ def torch_predict(image) -> None:
 def onnx_predict(image) -> None:
     """Predict using ONNX model."""
     ort_session.run(None, {"input": image.numpy()})
+
 
 @app.command()
 def comparetiming():
@@ -99,9 +101,11 @@ def comparetiming():
     onnx_predict(dummy_input)
     print("-" * 30)
 
+
 @app.command()
 def compgraph():
     import onnxruntime as rt
+
     sess_options = rt.SessionOptions()
 
     # Set graph optimization level
@@ -111,6 +115,8 @@ def compgraph():
     sess_options.optimized_model_filepath = "optimized_model.onnx"
 
     session = rt.InferenceSession("fakeartclassifier.onnx", sess_options)
+    session.run(None, {"input": np.random.randn(1, 3, 32, 32).astype(np.float32)})
+
 
 @app.command()
 def check_onnx_model(
@@ -120,8 +126,8 @@ def check_onnx_model(
     rtol: float = 1e-03,
     atol: float = 1e-05,
 ) -> None:
-    import onnxruntime as rt
     import numpy as np
+    import onnxruntime as rt
 
     ort_session = rt.InferenceSession(onnx_model_file)
     ort_inputs = {ort_session.get_inputs()[0].name: random_input.numpy()}

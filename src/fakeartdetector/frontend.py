@@ -1,5 +1,5 @@
-import os
 import io
+import os
 
 import pandas as pd
 import requests
@@ -10,18 +10,19 @@ from google.cloud import run_v2
 # Load environment variables from .env file
 load_dotenv()
 
+
 @st.cache_resource
 def get_backend_url():
     """Get the URL of the backend service."""
     # For local development, uncomment the line below
     # return 'http://127.0.0.1:8000'
-    
+
     # Check environment variable first
     env_backend = os.environ.get("BACKEND")
     if env_backend:
         print(f"Using BACKEND from .env: {env_backend}")
         return env_backend
-    
+
     # # Try to discover Cloud Run service automatically
     try:
         parent = "projects/double-zenith-484209-d9/locations/europe-west1"
@@ -38,6 +39,7 @@ def get_backend_url():
     except Exception as e:
         print(f"Could not discover Cloud Run service: {e}")
     return None
+
 
 def classify_image(image: bytes, backend: str, filename: str | None = None, mime: str | None = None):
     """Send the image to the backend for classification.
