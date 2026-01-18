@@ -4,22 +4,40 @@ import io
 import pandas as pd
 import requests
 import streamlit as st
+from dotenv import load_dotenv
 from google.cloud import run_v2
+
+# Load environment variables from .env file
+load_dotenv()
 
 @st.cache_resource
 def get_backend_url():
     """Get the URL of the backend service."""
-    # parent = "projects/dtumlops/locations/europe-west1"
-    # client = run_v2.ServicesClient()
-    # services = client.list_services(parent=parent)
-    # for service in services:
-    #     if service.name.split("/")[-1] == "production-model":
-    #         print(services)
-    #         print(f'the env is {os.environ.get("BACKEND")}')
-    #         return service.uri
-    return os.environ.get("BACKEND", 'https://fake-art-api-278387426212.europe-west1.run.app')
+    # For local development, uncomment the line below
     # return 'http://127.0.0.1:8000'
-
+    
+    # Check environment variable first
+    env_backend = os.environ.get("BACKEND")
+    if env_backend:
+        print(f"Using BACKEND from .env: {env_backend}")
+        return env_backend
+    
+    # # Try to discover Cloud Run service automatically
+    try:
+        parent = "projects/double-zenith-484209-d9/locations/europe-west1"
+        client = run_v2.ServicesClient()
+        services = client.list_services(parent=parent)
+        print("Discovered Cloud Run services:")
+        for service in services:
+            service_name = service.name.split("/")[-1]
+            print(f"  - {service_name}: {service.uri}")
+            if service_name == "fake-art-api":
+                discovered_url = str(service.uri)  # Convert to string
+                print(f"Using discovered service: {discovered_url}")
+                return discovered_url
+    except Exception as e:
+        print(f"Could not discover Cloud Run service: {e}")
+    return None
 
 def classify_image(image: bytes, backend: str, filename: str | None = None, mime: str | None = None):
     """Send the image to the backend for classification.
