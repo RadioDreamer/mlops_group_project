@@ -144,7 +144,9 @@ steps:
       - "--cpu"
       - "1"
       - "--set-env-vars"
-      - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth,WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT,MODEL_NAME=mlops_DTU_77/fake-art-detection/model-d14oblh0:v0"
+      - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT,MODEL_NAME=mlops_DTU_77/fake-art-detection/model-d14oblh0:v0"
+      - "--set-secrets"
+      - "WANDB_API_KEY=wandb-api-key:latest"
 
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy Frontend"
