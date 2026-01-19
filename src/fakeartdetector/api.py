@@ -29,7 +29,7 @@ def download_model(bucket_name, source_blob_name, destination_file_name):
 
 def load_model_wandb(artifact_path):
     print(f"--- Loading Model from: {artifact_path} ---")
-    api = wandb.Api(api_key=os.getenv("WANDB_API_KEY"))
+    # api = wandb.Api(api_key=os.getenv("WANDB_API_KEY"))
 
     # Access the specific artifact from the registry
     artifact = api.artifact(artifact_path)
@@ -77,10 +77,13 @@ def load_model_wandb(artifact_path):
 async def lifespan(app: FastAPI):
     """Loads the model and gets ready for inference"""
     load_dotenv()
-    global model, DEVICE, transform, loaded_model_source
+    global model, DEVICE, transform, loaded_model_source, api
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
+    print(f"Initializing the api wand registry service with provided key...")
+    api = wandb.Api(api_key=os.getenv("WANDB_API_KEY"))
+
 
     model = FakeArtClassifier().to(DEVICE)
     loaded_model_source = "None"
