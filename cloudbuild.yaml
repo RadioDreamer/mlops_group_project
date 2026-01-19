@@ -154,11 +154,11 @@ steps:
       - |
         set -euo pipefail
 
-        API_URL=$(gcloud run services describe fake-art-api \
+        API_URL=$$(gcloud run services describe fake-art-api \
           --region "$_REGION" \
           --format='value(status.url)')
 
-        echo "Deploying frontend with BACKEND_URL=${API_URL}"
+        echo "Deploying frontend with BACKEND_URL=$${API_URL}"
 
         gcloud run deploy fake-art-frontend \
           --image "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA" \
@@ -167,7 +167,7 @@ steps:
           --allow-unauthenticated \
           --memory "1Gi" \
           --cpu "1" \
-          --set-env-vars "BACKEND_URL=${API_URL},WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
+          --set-env-vars "BACKEND_URL=$${API_URL},WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
 
 substitutions:
   _REGION: "europe-west1"
