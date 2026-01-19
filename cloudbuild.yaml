@@ -1,31 +1,31 @@
 steps:
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Build Training Image"
-    args:
-      [
-        "build",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest",
-        "-f",
-        "./dockerfiles/train.dockerfile",
-        ".",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Build Training Image"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest",
+  #       "-f",
+  #       "./dockerfiles/train.dockerfile",
+  #       ".",
+  #     ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Build Evaluation Image"
-    args:
-      [
-        "build",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest",
-        "-f",
-        "./dockerfiles/evaluate.dockerfile",
-        ".",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Build Evaluation Image"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest",
+  #       "-f",
+  #       "./dockerfiles/evaluate.dockerfile",
+  #       ".",
+  #     ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Build API Image"
@@ -55,21 +55,21 @@ steps:
         ".",
       ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Push Training Image"
-    args:
-      [
-        "push",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Push Training Image"
+  #   args:
+  #     [
+  #       "push",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+  #     ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Push Evaluation Image"
-    args:
-      [
-        "push",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Push Evaluation Image"
+  #   args:
+  #     [
+  #       "push",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
+  #     ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Push API Image"
@@ -147,27 +147,25 @@ steps:
 
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy Frontend"
-    entrypoint: "bash"
+    entrypoint: "gcloud"
     secretEnv: ["WANDB_API_KEY"]
     args:
-      - "-c"
-      - |
-        set -euo pipefail
-
-        API_URL=$$(gcloud run services describe fake-art-api \
-          --region "$_REGION" \
-          --format='value(status.url)')
-
-        echo "Deploying frontend with BACKEND_URL=$${API_URL}"
-
-        gcloud run deploy fake-art-frontend \
-          --image "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA" \
-          --region "$_REGION" \
-          --platform managed \
-          --allow-unauthenticated \
-          --memory "1Gi" \
-          --cpu "1" \
-          --set-env-vars "BACKEND_URL=$${API_URL},WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
+      - "run"
+      - "deploy"
+      - "fake-art-frontend"
+      - "--image"
+      - "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA"
+      - "--region"
+      - "$_REGION"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--memory"
+      - "2Gi"
+      - "--cpu"
+      - "1"
+      - "--set-env-vars"
+      - "WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
 
 substitutions:
   _REGION: "europe-west1"

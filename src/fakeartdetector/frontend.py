@@ -228,6 +228,30 @@ def main() -> None:
         msg = "Backend service not found"
         raise ValueError(msg)
 
+
+    # Theme switcher
+    st.sidebar.title("Theme")
+    theme = st.sidebar.selectbox("Choose theme", ["Light", "Dark"], index=1)
+    if theme == "Dark":
+        st.markdown(
+            """
+            <style>
+            body, .stApp, .css-18e3th9, .css-1d391kg, .css-1v0mbdj, .css-1cpxqw2 {
+                background-color: #18191A !important;
+                color: #E4E6EB !important;
+            }
+            .st-bw, .st-cq, .st-dg, .st-dh, .st-dj, .st-dk, .st-dl, .st-dm, .st-dn, .st-do, .st-dp, .st-dq, .st-dr, .st-ds, .st-dt, .st-du, .st-dv, .st-dw, .st-dx, .st-dy, .st-dz, .st-e0, .st-e1, .st-e2, .st-e3, .st-e4, .st-e5, .st-e6, .st-e7, .st-e8, .st-e9, .st-ea, .st-eb, .st-ec, .st-ed, .st-ee, .st-ef, .st-eg, .st-eh, .st-ei, .st-ej, .st-ek, .st-el, .st-em, .st-en, .st-eo, .st-ep, .st-eq, .st-er, .st-es, .st-et, .st-eu, .st-ev, .st-ew, .st-ex, .st-ey, .st-ez, .st-f0, .st-f1, .st-f2, .st-f3, .st-f4, .st-f5, .st-f6, .st-f7, .st-f8, .st-f9, .st-fa, .st-fb, .st-fc, .st-fd, .st-fe, .st-ff, .st-fg, .st-fh, .st-fi, .st-fj, .st-fk, .st-fl, .st-fm, .st-fn, .st-fo, .st-fp, .st-fq, .st-fr, .st-fs, .st-ft, .st-fu, .st-fv, .st-fw, .st-fx, .st-fy, .st-fz {
+                background-color: #242526 !important;
+                color: #E4E6EB !important;
+            }
+            .stButton>button {
+                background-color: #3A3B3C !important;
+                color: #E4E6EB !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
     st.title("Image Classification")
 
     # Add model selection in sidebar
