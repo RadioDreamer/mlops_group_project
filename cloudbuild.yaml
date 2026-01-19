@@ -148,6 +148,7 @@ steps:
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy Frontend"
     entrypoint: "bash"
+    secretEnv: ["WANDB_API_KEY"]
     args:
       - "-c"
       - |
@@ -166,11 +167,13 @@ steps:
           --allow-unauthenticated \
           --memory "1Gi" \
           --cpu "1" \
-          --set-env-vars "BACKEND_URL=${API_URL}"
+          --set-env-vars "BACKEND_URL=${API_URL},WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
 
 substitutions:
   _REGION: "europe-west1"
   _REPO_NAME: "group-77-project"
+  _WANDB_PROJECT: "fake-art-detection"
+  _WANDB_ENTITY: "mlops_DTU_77"
 
 availableSecrets:
   secretManager:
