@@ -127,6 +127,7 @@ steps:
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy API"
     entrypoint: "gcloud"
+    secretEnv: ["WANDB_API_KEY"]
     args:
       - "run"
       - "deploy"
@@ -143,7 +144,7 @@ steps:
       - "--cpu"
       - "1"
       - "--set-env-vars"
-      - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth"
+      - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth,WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
 
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy Frontend"

@@ -7,7 +7,6 @@ from typing import cast
 import pandas as pd
 import requests
 import streamlit as st
-import wandb
 from dotenv import load_dotenv
 from google.cloud import run_v2
 
@@ -15,21 +14,16 @@ from google.cloud import run_v2
 load_dotenv()
 
 
-def get_wandb_models_from_api(
-    backend: str,
-    *,
-    limit_collections: int = 5,
-    latest_per_collection: bool = True,
-    limit_models: int = 10,
-):
-    """Fetch available models from the backend API instead of wandb directly."""
+
+def get_models_from_backend(backend: str, limit_collections: int = 5, latest_per_collection: bool = True, limit_models: int = 10):
+    """Fetch available models from the backend API only."""
     try:
         backend = (backend or "").strip().strip('"').strip("'")
         backend = backend.rstrip("/")
         url = f"{backend}/wandb-models"
         params = {
             "limit_collections": limit_collections,
-            "latest_per_collection": str(latest_per_collection).lower(),
+            "latest_per_collection": latest_per_collection,
             "limit_models": limit_models,
         }
         response = requests.get(url, params=params, timeout=30)
@@ -38,82 +32,14 @@ def get_wandb_models_from_api(
             models = data.get("models", [])
             print(f"Successfully fetched {len(models)} models from backend API")
             return models
-
-        # If the deployed backend doesn't have this endpoint yet, fall back to W&B.
-        if response.status_code == 404:
-            print("Backend does not expose /wandb-models (404). Falling back to W&B direct.")
-            return get_wandb_models_direct(
-                limit_collections=limit_collections,
-                latest_per_collection=latest_per_collection,
-                limit_models=limit_models,
-            )
-
         print(f"API returned status code {response.status_code}")
         print(f"API returned msg {response.text} {response}")
         return []
     except Exception as e:
         print(f"Error fetching models from API: {e}")
         import traceback
-
         traceback.print_exc()
-        # Final fallback
-        try:
-            return get_wandb_models_direct(
-                limit_collections=limit_collections,
-                latest_per_collection=latest_per_collection,
-                limit_models=limit_models,
-            )
-        except Exception:
-            return []
-
-
-def get_wandb_models_direct(
-    *,
-    limit_collections: int = 5,
-    latest_per_collection: bool = True,
-    per_collection: int = 1,
-    limit_models: int = 10,
-) -> list[dict]:
-    """Fallback: query W&B directly (still limited) when backend endpoint is unavailable."""
-    api_key = os.getenv("WANDB_API_KEY")
-    entity = os.getenv("WANDB_ENTITY")
-    project = os.getenv("WANDB_PROJECT")
-    if not api_key or not entity or not project:
         return []
-
-    api = wandb.Api(api_key=api_key)
-    collections = api.artifact_collections(type_name="model", project_name=f"{entity}/{project}")
-    collections = list(collections)[:limit_collections]
-
-    models: list[dict] = []
-    for coll in collections:
-        try:
-            artifact_iter = coll.artifacts(per_page=1 if latest_per_collection else per_collection)
-        except TypeError:
-            artifact_iter = coll.artifacts()
-
-        taken = 0
-        for art in artifact_iter:
-            models.append(
-                {
-                    "collection_name": coll.name,
-                    "version": art.version,
-                    "full_path": f"{art.entity}/{art.project}/{coll.name}:{art.version}",
-                    "created_at": (
-                        art.created_at
-                        if isinstance(art.created_at, str)
-                        else art.created_at.isoformat()
-                        if art.created_at
-                        else None
-                    ),
-                    "aliases": list(art.aliases) if art.aliases else [],
-                }
-            )
-            taken += 1
-            if latest_per_collection:
-                break
-            if taken >= per_collection:
-                break
 
     models = _sort_and_limit_models(models, limit=limit_models)
     return models
@@ -179,11 +105,11 @@ def _models_executor() -> ThreadPoolExecutor:
 def _start_models_fetch(backend: str) -> Future[list[dict]]:
     executor = _models_executor()
     return executor.submit(
-        get_wandb_models_from_api,
+        get_models_from_backend,
         backend,
-        limit_collections=5,
-        latest_per_collection=True,
-        limit_models=10,
+        5,  # limit_collections
+        True,  # latest_per_collection
+        10,  # limit_models
     )
 
 
@@ -195,21 +121,18 @@ def _rerun() -> None:
         st.experimental_rerun()
 
 
-def classify_image(image: bytes, backend: str, filename: str | None = None, mime: str | None = None):
-    """Send the image to the backend for classification.
-
-    The API expects a multipart-form field named "data" (UploadFile).
-    """
+def classify_image_via_api(image: bytes, backend: str, filename: str | None = None, mime: str | None = None):
+    """Send the image to the backend API for classification."""
     predict_url = f"{backend}/model/"
-    file_tuple = (filename or "image", io.BytesIO(image), mime or "application/octet-stream")
-    response = requests.post(predict_url, files={"data": file_tuple}, timeout=10)
+    files = {"data": (filename or "image", io.BytesIO(image), mime or "application/octet-stream")}
+    response = requests.post(predict_url, files=files, timeout=10)
     if response.status_code == 200:
         return response.json()
     return None
 
 
-def switch_model_on_backend(backend: str, model_path: str):
-    """Tell the backend to switch to a different model."""
+def switch_model_on_backend_api(backend: str, model_path: str):
+    """Tell the backend API to switch to a different model."""
     switch_url = f"{backend}/switch-model"
     params = {"model_path": model_path}
     try:
@@ -229,29 +152,9 @@ def main() -> None:
         raise ValueError(msg)
 
 
-    # Theme switcher
-    st.sidebar.title("Theme")
-    theme = st.sidebar.selectbox("Choose theme", ["Light", "Dark"], index=1)
-    if theme == "Dark":
-        st.markdown(
-            """
-            <style>
-            body, .stApp, .css-18e3th9, .css-1d391kg, .css-1v0mbdj, .css-1cpxqw2 {
-                background-color: #18191A !important;
-                color: #E4E6EB !important;
-            }
-            .st-bw, .st-cq, .st-dg, .st-dh, .st-dj, .st-dk, .st-dl, .st-dm, .st-dn, .st-do, .st-dp, .st-dq, .st-dr, .st-ds, .st-dt, .st-du, .st-dv, .st-dw, .st-dx, .st-dy, .st-dz, .st-e0, .st-e1, .st-e2, .st-e3, .st-e4, .st-e5, .st-e6, .st-e7, .st-e8, .st-e9, .st-ea, .st-eb, .st-ec, .st-ed, .st-ee, .st-ef, .st-eg, .st-eh, .st-ei, .st-ej, .st-ek, .st-el, .st-em, .st-en, .st-eo, .st-ep, .st-eq, .st-er, .st-es, .st-et, .st-eu, .st-ev, .st-ew, .st-ex, .st-ey, .st-ez, .st-f0, .st-f1, .st-f2, .st-f3, .st-f4, .st-f5, .st-f6, .st-f7, .st-f8, .st-f9, .st-fa, .st-fb, .st-fc, .st-fd, .st-fe, .st-ff, .st-fg, .st-fh, .st-fi, .st-fj, .st-fk, .st-fl, .st-fm, .st-fn, .st-fo, .st-fp, .st-fq, .st-fr, .st-fs, .st-ft, .st-fu, .st-fv, .st-fw, .st-fx, .st-fy, .st-fz {
-                background-color: #242526 !important;
-                color: #E4E6EB !important;
-            }
-            .stButton>button {
-                background-color: #3A3B3C !important;
-                color: #E4E6EB !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+    # Use Streamlit's built-in theme system for best results
+    st.set_page_config(page_title="Image Classification", layout="centered")
+    st.sidebar.info("For best dark mode experience, set your theme in .streamlit/config.toml or via Streamlit settings.")
     st.title("Image Classification")
 
     # Add model selection in sidebar
@@ -315,7 +218,7 @@ def main() -> None:
 
                 if st.sidebar.button("Switch to this model"):
                     with st.spinner("Switching model on backend..."):
-                        result = switch_model_on_backend(backend, selected_model_path)
+                        result = switch_model_on_backend_api(backend, selected_model_path)
                         if result.get("success"):
                             st.sidebar.success(f"✅ {result.get('message', 'Model switched successfully!')}")
                         else:
@@ -334,7 +237,7 @@ def main() -> None:
     if uploaded_file is not None:
         image = uploaded_file.read()
 
-        result = classify_image(
+        result = classify_image_via_api(
             image,
             backend=backend,
             filename=getattr(uploaded_file, "name", None),
