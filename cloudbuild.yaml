@@ -166,7 +166,9 @@ steps:
       - "--cpu"
       - "1"
       - "--set-env-vars"
-      - "WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
+      - "WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
+      - "--set-secrets"
+      - "WANDB_API_KEY=wandb-api-key:latest"
 
 substitutions:
   _REGION: "europe-west1"
