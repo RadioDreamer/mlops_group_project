@@ -29,7 +29,7 @@ def download_model(bucket_name, source_blob_name, destination_file_name):
 
 def load_model_wandb(artifact_path):
     print(f"--- Loading Model from: {artifact_path} ---")
-    # api = wandb.Api(api_key=os.getenv("WANDB_API_KEY"))
+    api = wandb.Api(api_key=os.getenv("WANDB_API_KEY"))
 
     # Access the specific artifact from the registry
     artifact = api.artifact(artifact_path)
@@ -81,8 +81,6 @@ async def lifespan(app: FastAPI):
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
-    print(f"Initializing the api wand registry service with provided key...")
-    api = wandb.Api(api_key=os.getenv("WANDB_API_KEY"))
 
 
     model = FakeArtClassifier().to(DEVICE)
@@ -110,7 +108,7 @@ async def lifespan(app: FastAPI):
         model = load_model_wandb(os.getenv("MODEL_NAME")).to(DEVICE)
         loaded_model_source = os.getenv("MODEL_NAME")
 
-    elif os.getenv("LOAD_FROM_BUCKET", "false").lower() in ("true", "1", "yes"):
+    elif os.getenv("LOAD_FROM_BUCKET").lower() in ("true", "1", "yes"):
         bucket_name = os.environ.get("GCS_BUCKET_NAME")
         model_file = os.environ.get("MODEL_FILE")
         local_model_path = "model.pth"
