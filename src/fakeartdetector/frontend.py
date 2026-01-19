@@ -54,6 +54,7 @@ def get_wandb_models_from_api(
     except Exception as e:
         print(f"Error fetching models from API: {e}")
         import traceback
+
         traceback.print_exc()
         # Final fallback
         try:
@@ -228,7 +229,7 @@ def main() -> None:
         raise ValueError(msg)
 
     st.title("Image Classification")
-    
+
     # Add model selection in sidebar
     st.sidebar.title("Model Selection")
     st.sidebar.caption(f"Backend: {backend}")
@@ -272,7 +273,7 @@ def main() -> None:
 
     if st.session_state.get("models_error"):
         st.sidebar.warning(f"Model list failed: {st.session_state.models_error}")
-    
+
     if available_models:
         st.sidebar.caption(f"Showing {len(available_models)} latest models")
 
@@ -308,7 +309,7 @@ def main() -> None:
 
     if uploaded_file is not None:
         image = uploaded_file.read()
-        
+
         result = classify_image(
             image,
             backend=backend,

@@ -1,0 +1,32 @@
+name: Deploy Frontend (Cloud Build)
+
+on:
+  push:
+    branches:
+      - cleaningUpFrontend
+
+permissions:
+  contents: read
+
+jobs:
+  cloudbuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Submit Cloud Build
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          gcloud config set project "$GCP_PROJECT_ID"
+          gcloud builds submit --config frontendbuild.yaml .

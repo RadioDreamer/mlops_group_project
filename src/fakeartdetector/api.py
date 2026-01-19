@@ -49,10 +49,10 @@ async def lifespan(app: FastAPI):
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
-    
+
     model = FakeArtClassifier().to(DEVICE)
     loaded_model_source = "None"
-    
+
     # Priority order:
     # 1. USE_LOCAL flag (local model path)
     # 2. MODEL_NAME env variable (wandb model)
@@ -70,18 +70,16 @@ async def lifespan(app: FastAPI):
         else:
             print(f"Local model not found at {local_model_path}")
 
-
     elif os.getenv("MODEL_NAME"):
         print("Loading model from wandb MODEL_NAME...")
         model = load_model_wandb(os.getenv("MODEL_NAME")).to(DEVICE)
         loaded_model_source = os.getenv("MODEL_NAME")
-        
-            
+
     elif os.getenv("LOAD_FROM_BUCKET", "false").lower() in ("true", "1", "yes"):
         bucket_name = os.environ.get("GCS_BUCKET_NAME")
         model_file = os.environ.get("MODEL_FILE")
         local_model_path = "model.pth"
-        
+
         if bucket_name and model_file:
             try:
                 print(f"Loading model from GCS: gs://{bucket_name}/{model_file}")
@@ -92,7 +90,7 @@ async def lifespan(app: FastAPI):
                 print("Successfully loaded model from GCS")
             except Exception as e:
                 print(f"Failed to load from GCS: {e}. Falling back to local model.")
-                
+
     # Final fallback to base model
     if loaded_model_source == "None":
         print("Using fallback local base_model.pth")
@@ -153,7 +151,9 @@ def model_info():
 def get_wandb_models(
     limit_collections: int = Query(5, ge=1, le=50, description="Max number of collections to scan"),
     latest_per_collection: bool = Query(True, description="Return only the newest version per collection"),
-    per_collection: int = Query(1, ge=1, le=20, description="Max artifacts per collection if not latest_per_collection"),
+    per_collection: int = Query(
+        1, ge=1, le=20, description="Max artifacts per collection if not latest_per_collection"
+    ),
     limit_models: int = Query(10, ge=1, le=200, description="Max number of models returned"),
 ):
     """Returns available models from wandb registry"""
@@ -165,11 +165,7 @@ def get_wandb_models(
         if not entity or not project:
             return {"error": "WANDB_ENTITY and WANDB_PROJECT must be set", "models": []}
 
-        collections = api.artifact_collections(
-            type_name="model",
-            project_name=f"{entity}/{project}",
-            per_page=5
-        )
+        collections = api.artifact_collections(type_name="model", project_name=f"{entity}/{project}", per_page=5)
 
         collections = list(collections)
         total_collections = len(collections)
@@ -231,7 +227,7 @@ def get_wandb_models(
 @app.post("/switch-model")
 def switch_model(model_path: str):
     """Switch to a different model from wandb registry
-    
+
     Args:
         model_path: Full wandb artifact path (e.g., 'entity/project/model-name:version')
     """

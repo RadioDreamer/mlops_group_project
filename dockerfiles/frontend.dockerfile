@@ -23,5 +23,8 @@ COPY README.md README.md
 # syncing
 RUN uv sync --frozen
 
+# Cloud Run expects the container to listen on $PORT (default 8080)
+EXPOSE 8080
+
 # entrypoint setup
-ENTRYPOINT ["uv", "run", "streamlit", "run", "src/fakeartdetector/frontend.py"]
+ENTRYPOINT ["sh", "-c", "exec uv run streamlit run src/fakeartdetector/frontend.py --server.address=0.0.0.0 --server.port=${PORT:-8080} --server.headless=true"]
