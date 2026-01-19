@@ -1,7 +1,9 @@
 import os
+import shutil
 from contextlib import asynccontextmanager
 from http import HTTPStatus
 from io import BytesIO
+from pathlib import Path
 from typing import cast
 
 import torchvision.transforms as T  # noqa:N812
@@ -33,11 +35,41 @@ def load_model_wandb(artifact_path):
     artifact = api.artifact(artifact_path)
 
     download_dir = "staged_model_dir"
-    artifact.download(root=download_dir)
+    download_path = artifact.download(root=download_dir)
 
     # Get the checkpoint filename and load the model
     file_name = artifact.files()[0].name
-    full_ckpt_path = os.path.join(download_dir, file_name)
+    full_ckpt_path = os.path.join(download_path, file_name)
+
+    # Cleanup: keep only the checkpoint we are about to load.
+    try:
+        staged_dir = Path(download_dir).resolve()
+        keep_file = Path(full_ckpt_path).resolve()
+
+        # Safety: only delete things inside staged_model_dir.
+        if staged_dir in keep_file.parents and staged_dir.exists():
+            for child in staged_dir.iterdir():
+                # Keep the file itself, and the top-level directory that contains it (if any).
+                if child == keep_file:
+                    continue
+                if child.is_dir() and keep_file in child.rglob(keep_file.name):
+                    # Remove everything in this dir except the keep_file.
+                    for sub in child.iterdir():
+                        if sub == keep_file or (sub.is_dir() and keep_file in sub.rglob(keep_file.name)):
+                            continue
+                        if sub.is_dir():
+                            shutil.rmtree(sub, ignore_errors=True)
+                        else:
+                            sub.unlink(missing_ok=True)
+                    continue
+
+                if child.is_dir():
+                    shutil.rmtree(child, ignore_errors=True)
+                else:
+                    child.unlink(missing_ok=True)
+    except Exception as e:
+        print(f"Warning: failed to cleanup staged_model_dir: {e}")
+
     return FakeArtClassifier.load_from_checkpoint(full_ckpt_path)
 
 
