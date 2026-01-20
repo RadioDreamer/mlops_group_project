@@ -82,7 +82,6 @@ async def lifespan(app: FastAPI):
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
 
-
     model = FakeArtClassifier().to(DEVICE)
     loaded_model_source = "None"
 

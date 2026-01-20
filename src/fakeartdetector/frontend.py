@@ -7,7 +7,6 @@ from typing import cast
 import pandas as pd
 import requests
 import streamlit as st
-import wandb
 from dotenv import load_dotenv
 from google.cloud import run_v2
 
@@ -15,8 +14,9 @@ from google.cloud import run_v2
 load_dotenv()
 
 
-
-def get_models_from_backend(backend: str, limit_collections: int = 5, latest_per_collection: bool = True, limit_models: int = 10):
+def get_models_from_backend(
+    backend: str, limit_collections: int = 5, latest_per_collection: bool = True, limit_models: int = 10
+):
     """Fetch available models from the backend API only."""
     try:
         backend = (backend or "").strip().strip('"').strip("'")
@@ -39,6 +39,7 @@ def get_models_from_backend(backend: str, limit_collections: int = 5, latest_per
     except Exception as e:
         print(f"Error fetching models from API: {e}")
         import traceback
+
         traceback.print_exc()
         return []
 
@@ -152,10 +153,11 @@ def main() -> None:
         msg = "Backend service not found"
         raise ValueError(msg)
 
-
     # Use Streamlit's built-in theme system for best results
     st.set_page_config(page_title="Image Classification", layout="centered")
-    st.sidebar.info("For best dark mode experience, set your theme in .streamlit/config.toml or via Streamlit settings.")
+    st.sidebar.info(
+        "For best dark mode experience, set your theme in .streamlit/config.toml or via Streamlit settings."
+    )
     st.title("Image Classification")
 
     # Add model selection in sidebar
