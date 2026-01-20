@@ -1,3 +1,13 @@
+"""Project task runner (Invoke tasks).
+
+This file exposes common developer tasks via the `invoke` CLI. Examples:
+
+    - `inv --list` to list available tasks
+    - `inv train --help` to view training options
+
+Each task is annotated with a `help` mapping to provide clear CLI help text.
+"""
+
 import os
 from pathlib import Path
 
@@ -13,26 +23,44 @@ VALID_PRECISIONS = ["32", "bf16-mixed", "bf16", "bf16-true"]
 
 
 def _run(ctx: Context, command: str) -> None:
+    """Run a shell command with sensible defaults for Windows/Unix.
+
+    Args:
+        ctx: Invoke context passed automatically by `invoke`.
+        command: Shell command to execute.
+    """
     ctx.run(command, echo=True, pty=not WINDOWS)
 
 
 def _list_yaml_stems(dir_path: Path) -> list[str]:
+    """Return sorted stem names of `.yaml` files in a directory.
+
+    Returns an empty list if the directory does not exist.
+    """
     if not dir_path.exists():
         return []
     return sorted([p.stem for p in dir_path.glob("*.yaml") if p.is_file()])
 
 
 # Project commands
-@task
-def preprocess_data(ctx: Context) -> None:
-    """Preprocess data."""
-    _run(ctx, f"uv run src/{PROJECT_NAME}/data.py data/processed")
+@task(help={"out_dir": "Directory to write processed data into (default: data/processed)"})
+def preprocess_data(ctx: Context, out_dir: str = "data/processed") -> None:
+    """Run the data preprocessing pipeline.
+
+    This wraps the project's data preprocessing script. The `out_dir` is
+    created if necessary and will receive processed tensors/files.
+    """
+    _run(ctx, f"uv run src/{PROJECT_NAME}/data.py {out_dir}")
 
 
-@task
-def startapi(ctx: Context) -> None:
-    """Starts api using uvicorn"""
-    _run(ctx, "uv run uvicorn --reload --app-dir src/fakeartdetector/ api:app")
+@task(help={"host": "Host to bind uvicorn to (default: 127.0.0.1)", "port": "Port for uvicorn (default: 8000)"})
+def startapi(ctx: Context, host: str = "127.0.0.1", port: int = 8000) -> None:
+    """Start the FastAPI application with `uvicorn` for local development.
+
+    Use `--reload` for automatic reloads on source changes. This task assumes
+    the ASGI app is exposed as `api:app` inside `src/fakeartdetector/`.
+    """
+    _run(ctx, f"uv run uvicorn --reload --app-dir src/fakeartdetector api:app --host {host} --port {port}")
 
 
 @task(
@@ -168,17 +196,28 @@ def tensorboard(ctx: Context, logdir: str = "outputs", port: int = 6006) -> None
     _run(ctx, f"uv run tensorboard --logdir={logdir} --port={port}")
 
 
-@task
-def test(ctx: Context) -> None:
-    """Run tests."""
-    _run(ctx, "uv run coverage run -m pytest tests/")
+@task(help={"pattern": "Optional pytest pattern to run a subset (e.g., tests/test_api.py)"})
+def test(ctx: Context, pattern: str = "tests/") -> None:
+    """Run the test suite and produce a coverage report.
+
+    By default the full `tests/` directory runs; pass `pattern` to target a
+    single file or subset.
+    """
+    _run(ctx, f"uv run coverage run -m pytest {pattern}")
     _run(ctx, "uv run coverage report -m -i")
 
 
-@task
-def frontend(ctx: Context) -> None:
-    """Start frontend application using the local network backend"""
-    _run(ctx, "streamlit run src/fakeartdetector/frontend.py")
+@task(help={"browser": "Open the browser after starting (default: False)"})
+def frontend(ctx: Context, browser: bool = False) -> None:
+    """Start the Streamlit frontend for interactive inference and model selection.
+
+    Set `browser=True` to open a browser tab automatically (Streamlit may
+    also open one by default depending on your environment).
+    """
+    cmd = "streamlit run src/fakeartdetector/frontend.py"
+    if not browser:
+        cmd += " --server.headless true"
+    _run(ctx, cmd)
 
 
 @task(
@@ -202,7 +241,12 @@ def evaluate(
     evaluate_cfg: str = "base",
     print_config: bool = False,
 ) -> None:
-    """Evaluate using the Hydra-backed CLI in `fakeartdetector.evaluate`."""
+    """Evaluate the model using the project's evaluation CLI.
+
+    This task forwards options to the `fakeartdetector.evaluate` Typer CLI and
+    respects Hydra configuration. Use `--print-config` to debug resolved
+    configuration values.
+    """
     cmd = f"uv run python -m {PROJECT_NAME}.evaluate"
     cmd += f" --config-name {config_name}"
     cmd += f" --dataset {dataset}"
@@ -221,20 +265,32 @@ def evaluate(
 
 @task
 def docker_build(ctx: Context, progress: str = "plain") -> None:
-    """Build docker images."""
+    """Build Docker images for training and API components.
+
+    The `progress` argument is forwarded to `docker build --progress` and can
+    be `plain`, `auto`, or `tty` depending on your terminal.
+    """
     _run(ctx, f"docker build -t train:latest . -f dockerfiles/train.dockerfile --progress={progress}")
     _run(ctx, f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}")
 
 
-@task
+@task(help={"progress": "Docker build progress mode (auto|plain|tty)"})
 def docker_build_api(ctx: Context, progress: str = "plain") -> None:
-    """Build docker images."""
+    """Build only the API Docker image.
+
+    Useful during development when only the service image needs rebuilding.
+    """
     _run(ctx, f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}")
 
 
 # data version commands
-@task
-def dvc(ctx, folder="data", message="Add new data"):
+@task(help={"folder": "Folder to add to DVC (default: data)", "message": "Git commit message"})
+def dvc(ctx: Context, folder: str = "data", message: str = "Add new data") -> None:
+    """Add data to DVC, commit, and push remote storage.
+
+    This is a convenience wrapper; for fine-grained control prefer running the
+    underlying `dvc` and `git` commands directly.
+    """
     ctx.run(f"dvc add {folder}")
     ctx.run(f"git add {folder}.dvc .gitignore")
     ctx.run(f"git commit -m '{message}'")
@@ -243,7 +299,8 @@ def dvc(ctx, folder="data", message="Add new data"):
 
 
 @task
-def pull_data(ctx):
+def pull_data(ctx: Context) -> None:
+    """Pull data artifacts using DVC from the configured remote."""
     ctx.run("dvc pull")
 
 
@@ -293,22 +350,26 @@ def visualize(
 # Documentation commands
 @task
 def build_docs(ctx: Context) -> None:
-    """Build documentation."""
+    """Build the MkDocs documentation to `docs/build`.
+
+    Uses the project's `docs/mkdocs.yaml` configuration. Run this before
+    committing documentation changes if you want to validate the site build.
+    """
     _run(ctx, "uv run mkdocs build --config-file docs/mkdocs.yaml --site-dir build")
 
 
 @task
 def serve_docs(ctx: Context) -> None:
-    """Serve documentation."""
+    """Serve the documentation locally (useful for previewing changes)."""
     _run(ctx, "uv run mkdocs serve --config-file docs/mkdocs.yaml")
 
 
 @task
 def make_req_txt(ctx: Context) -> None:
-    """Export dependencies to requirements.txt and requirements_dev.txt.
+    """Export dependencies to `requirements.txt` and `requirements_dev.txt`.
 
-    - requirements.txt: runtime dependencies (default group)
-    - requirements_dev.txt: runtime + dev dependencies
+    This uses `uv` (the packaging tool used by the repo) to export pinned
+    requirements for production and development environments.
     """
     _run(ctx, "uv export --format requirements-txt --no-hashes -o requirements.txt")
     _run(ctx, "uv export --format requirements-txt --no-hashes --group dev -o requirements_dev.txt")
@@ -317,8 +378,10 @@ def make_req_txt(ctx: Context) -> None:
 # Git commands
 @task(help={"message": "The commit message"})
 def push(ctx: Context, message: str = "chore: empty commit") -> None:
-    """
-    Add all changes, commit, and push.
+    """Stage all changes, create a commit, and push to the current branch.
+
+    This helper is convenient for small changes and CI scripts. If the remote
+    branch does not have an upstream, the task will set it automatically.
     """
     ctx.run("git add .")
     ctx.run(f'git commit -m "{message}"')

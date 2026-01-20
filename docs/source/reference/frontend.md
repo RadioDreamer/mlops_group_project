@@ -1,4 +1,4 @@
-# Frontend (Streamlit)
+# `Frontend (Streamlit)`
 
 This project includes a Streamlit-based frontend used to upload images and request classification from the backend API.
 
@@ -9,10 +9,10 @@ This project includes a Streamlit-based frontend used to upload images and reque
 
 ## Running locally
 
-Install project requirements, then run:
+Install project dependencies with the repository's package manager, then run:
 
 ```bash
-pip install -r requirements.txt
+uv sync
 streamlit run src/fakeartdetector/frontend.py
 ```
 

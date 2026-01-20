@@ -22,11 +22,11 @@ python src/fakeartdetector/export_onnx.py --checkpoint ./staged_model_dir/model.
 
 ## Running ONNX model
 
-Install ONNX Runtime and run inference:
+Install dependencies via the project's package manager and run ONNX Runtime checks:
 
 ```bash
-pip install onnxruntime
-python -c "import onnxruntime as ort; print(ort.get_device())"
+uv sync
+uv run python -c "import onnxruntime as ort; print(ort.get_device())"
 ```
 
-Then write a small runner that loads `model.onnx` and runs inference on preprocessed tensors.
+Then write a small runner that loads `model.onnx` and runs inference on preprocessed tensors (run it via `uv run`).

@@ -51,3 +51,4 @@ nav:
       - Evidently Reports: reference/evidently.md
       - Tests: reference/tests.md
       - Configs: reference/configs.md
+      - Tasks & Invocations: reference/tasks_invocations.md

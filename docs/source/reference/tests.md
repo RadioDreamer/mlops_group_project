@@ -4,11 +4,15 @@ This page describes the test suite and how to run tests.
 
 ## Running tests
 
-From the project root run:
+From the project root run (use the repository package manager). To install runtime
+and developer dependencies and run tests:
 
 ```bash
-pip install -r requirements_dev.txt
-pytest -q
+uv sync
+uv sync --dev   # (optional) install development dependencies
+uv run pytest -q
+# or just invoke
+uv run invoke test #(more on the invocations documentation page)
 ```
 
 ## Test structure
