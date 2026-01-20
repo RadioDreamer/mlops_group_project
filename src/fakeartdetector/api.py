@@ -11,6 +11,7 @@ import torchvision.transforms as T  # noqa:N812
 import wandb
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, File, Query, UploadFile
+from fastapi.responses import FileResponse
 from google.cloud import storage
 from PIL import Image
 from torch import Tensor, cuda, device, load, no_grad, sigmoid, unsqueeze
@@ -189,6 +190,52 @@ def int_item():
     """http://127.0.0.1:8000/models"""
     model_list = os.listdir("./models")
     return model_list
+
+
+@app.get("/download-db")
+def download_db():
+    """Returns the sqlite database file used for inference logs.
+    Example Usage:
+        curl -X GET 'http://localhost:8000/download-db' --output ./dbfile.db
+    """
+    db_path = os.getenv("SQLITE_DB_PATH", "data/inference_logs/inference_logs.db")
+    if not os.path.exists(db_path):
+        return {"error": "Database file not found", "path": db_path}
+    return FileResponse(db_path, media_type="application/x-sqlite3", filename=os.path.basename(db_path))
+
+
+@app.get("/inference-logs/files")
+def list_inference_log_files():
+    """List files in the inference logs directory with sizes (bytes and human readable)."""
+    db_path = os.getenv("SQLITE_DB_PATH", "data/inference_logs/inference_logs.db")
+    dir_path = os.path.dirname(db_path) or "."
+
+    if not os.path.isdir(dir_path):
+        return {"directory": dir_path, "files": []}
+
+    def _human_size(n: int) -> str:
+        for unit in ["B", "KB", "MB", "GB", "TB"]:
+            if n < 1024.0:
+                return f"{n:.1f}{unit}"
+            n /= 1024.0
+        return f"{n:.1f}PB"
+
+    files = []
+    for name in sorted(os.listdir(dir_path)):
+        full = os.path.join(dir_path, name)
+        if os.path.isfile(full):
+            try:
+                size = os.path.getsize(full)
+            except OSError:
+                size = None
+            files.append({
+                "name": name,
+                "path": full,
+                "size_bytes": size,
+                "size_human": _human_size(size) if isinstance(size, int) else None,
+            })
+
+    return {"directory": dir_path, "files": files}
 
 
 @app.get("/model-info")
