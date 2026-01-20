@@ -77,7 +77,7 @@ def load_model_wandb(artifact_path):
 async def lifespan(app: FastAPI):
     """Loads the model and gets ready for inference"""
     load_dotenv()
-    global model, DEVICE, transform, loaded_model_source
+    global model, DEVICE, transform, loaded_model_source, api
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
@@ -107,7 +107,7 @@ async def lifespan(app: FastAPI):
         model = load_model_wandb(os.getenv("MODEL_NAME")).to(DEVICE)
         loaded_model_source = os.getenv("MODEL_NAME")
 
-    elif os.getenv("LOAD_FROM_BUCKET", "false").lower() in ("true", "1", "yes"):
+    elif os.getenv("LOAD_FROM_BUCKET") in ("true", "1", "yes"):
         bucket_name = os.environ.get("GCS_BUCKET_NAME")
         model_file = os.environ.get("MODEL_FILE")
         local_model_path = "model.pth"
