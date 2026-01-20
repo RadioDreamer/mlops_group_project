@@ -1,4 +1,6 @@
+from pathlib import Path
 import os
+import time
 import shutil
 from contextlib import asynccontextmanager
 from http import HTTPStatus
@@ -9,8 +11,9 @@ from typing import cast
 import torchvision.transforms as T  # noqa:N812
 import wandb
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, Query, UploadFile
+from fastapi import FastAPI, File, Query, UploadFile, BackgroundTasks
 from google.cloud import storage
+from fakeartdetector.sqlite_db import init_db, insert_row
 from PIL import Image
 from torch import Tensor, cuda, device, load, no_grad, sigmoid, unsqueeze
 from torch.backends import mps
@@ -72,15 +75,36 @@ def load_model_wandb(artifact_path):
 
     return FakeArtClassifier.load_from_checkpoint(full_ckpt_path)
 
+def add_to_database(
+    latency: float,
+    embedding: float,
+    prediction: float,
+) -> None:
+    """Save input image and prediction to database."""
+    try:
+        row_id = insert_row(latency, embedding, prediction)
+        print(f"Inserted row into sqlite db id={row_id}")
+    except Exception as e:
+        print(f"Error inserting row into sqlite db: {e}")
+    
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Loads the model and gets ready for inference"""
+    # Ensure directories exist
     load_dotenv()
     global model, DEVICE, transform, loaded_model_source, api
     print("Hello, i am loading the model")
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
+    # Initialize sqlite database for inference logs
+    db_path = os.getenv("SQLITE_DB_PATH", "inference_logs.db")
+    try:
+        init_db(db_path)
+        print(f"Initialized sqlite DB at: {db_path}")
+    except Exception as e:
+        print(f"Failed to initialize sqlite DB at {db_path}: {e}")
 
     model = FakeArtClassifier().to(DEVICE)
     loaded_model_source = "None"
@@ -278,7 +302,7 @@ def switch_model(model_path: str):
 
 # ------------------------------------------ POST ------------------------------------------
 @app.post("/model/")
-async def model_inference(data: UploadFile = File(...)):
+async def model_inference(data: UploadFile = File(...), background_tasks: BackgroundTasks = BackgroundTasks()):
     """Answers if the Image Sent is AI art of not
 
     Example Usage:
@@ -289,9 +313,17 @@ async def model_inference(data: UploadFile = File(...)):
     image_bytes = await data.read()
     img = await image_clean_utility(image_bytes)
     with no_grad():
-        logits = model(img)
+        embeddings = model.classifier(model.backbone(img))
+        logits = model.head(embeddings)
         prob = sigmoid(logits)
         is_ai = (prob > 0.5).item()
+
+    background_tasks.add_task(
+        add_to_database,
+        latency=time.time(),
+        embedding=embeddings.cpu().numpy(),
+        prediction=prob.item(),
+    )
     return {"isAI": is_ai, "probability": prob.item()}
 
 
