@@ -142,6 +142,8 @@ steps:
       - "api-container"
       - "--image"
       - "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/api-image:$SHORT_SHA"
+      - "--port"
+      - "8080"
       - "--memory"
       - "4Gi"
       - "--cpu"
