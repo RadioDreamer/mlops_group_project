@@ -254,7 +254,7 @@ google-api-core==2.29.0
     #   google-cloud-core
     #   google-cloud-run
     #   google-cloud-storage
-google-api-python-client==2.187.0
+google-api-python-client==2.188.0
     # via fakeartdetector
 google-auth==2.47.0
     # via
@@ -274,7 +274,7 @@ google-cloud-core==2.5.0
     # via google-cloud-storage
 google-cloud-run==0.14.0
     # via fakeartdetector
-google-cloud-storage==3.7.0
+google-cloud-storage==3.8.0
     # via
     #   fakeartdetector
     #   gcsfs
@@ -694,7 +694,7 @@ ruamel-yaml==0.19.1
     # via
     #   dvc
     #   gto
-ruff==0.14.11
+ruff==0.14.13
 scikit-learn==1.8.0
     # via fakeartdetector
 scipy==1.16.3
@@ -788,7 +788,7 @@ tqdm==4.67.1
     #   huggingface-hub
     #   pytorch-lightning
     #   scmrepo
-ty==0.0.11
+ty==0.0.12
 typer==0.21.1
     # via
     #   fakeartdetector

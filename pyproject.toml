@@ -54,13 +54,13 @@ dependencies = [
 [dependency-groups]
 dev = [
     "coverage==7.13.1",
-    "invoke==2.2.0",
+    "invoke==2.2.1",
     "mkdocs-material==9.7.1",
     "mkdocstrings[python]==0.27.0",
     "mkdocs==1.6.1",
     "pre-commit==4.5.1",
-    "pytest==8.3.4",
-    "ruff==0.14.11",
+    "pytest==9.0.2",
+    "ruff==0.14.13",
     "mkdocstrings-python==1.12.2",
     "ty>=0.0.9",
     "locust>=2.43.1",
