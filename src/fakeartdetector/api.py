@@ -362,7 +362,7 @@ async def model_inference(data: UploadFile = File(...), background_tasks: Backgr
     img = await image_clean_utility(image_bytes)
     with no_grad():
         embeddings = model.classifier(model.backbone(img))
-        logits = model.head(embeddings)
+        logits: Tensor = model.head(embeddings)
         prob = sigmoid(logits)
         is_ai = (prob > 0.5).item()
 

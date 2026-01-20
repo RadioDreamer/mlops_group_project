@@ -120,7 +120,6 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
         batch_size=hparams["batch_size"],
         shuffle=True,
         num_workers=num_workers,
-        prefetch_factor=2,
         persistent_workers=num_workers > 0,
     )
     val_loader = DataLoader(
@@ -128,7 +127,6 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
         batch_size=hparams["batch_size"],
         shuffle=False,
         num_workers=num_workers,
-        prefetch_factor=2,
         persistent_workers=num_workers > 0,
     )
     logger.debug("Loaded train/val dataloaders")
