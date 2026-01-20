@@ -157,6 +157,7 @@ steps:
       - "collector"
       - "--image"
       - "us-docker.pkg.dev/cloud-ops-agents-artifacts/cloud-run-gmp-sidecar/cloud-run-gmp-sidecar:1.1.1"
+      - "--clear-ports"
       - "--set-env-vars"
       - "GMP_TARGET_PORT=8000,GMP_TARGET_PATH=/metrics,GMP_COLLECTION_PERIOD=10s"
 
