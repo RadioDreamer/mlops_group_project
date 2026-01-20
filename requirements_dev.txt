@@ -254,7 +254,7 @@ google-api-core==2.29.0
     #   google-cloud-core
     #   google-cloud-run
     #   google-cloud-storage
-google-api-python-client==2.187.0
+google-api-python-client==2.188.0
     # via fakeartdetector
 google-auth==2.47.0
     # via
