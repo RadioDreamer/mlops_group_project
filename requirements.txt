@@ -274,7 +274,7 @@ google-cloud-core==2.5.0
     # via google-cloud-storage
 google-cloud-run==0.14.0
     # via fakeartdetector
-google-cloud-storage==3.7.0
+google-cloud-storage==3.8.0
     # via
     #   fakeartdetector
     #   gcsfs
