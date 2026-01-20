@@ -107,7 +107,7 @@ async def lifespan(app: FastAPI):
         model = load_model_wandb(os.getenv("MODEL_NAME")).to(DEVICE)
         loaded_model_source = os.getenv("MODEL_NAME")
 
-    elif os.getenv("LOAD_FROM_BUCKET").lower() in ("true", "1", "yes"):
+    elif os.getenv("LOAD_FROM_BUCKET") in ("true", "1", "yes"):
         bucket_name = os.environ.get("GCS_BUCKET_NAME")
         model_file = os.environ.get("MODEL_FILE")
         local_model_path = "model.pth"
