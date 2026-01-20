@@ -7,6 +7,7 @@ from typing import cast
 import pandas as pd
 import requests
 import streamlit as st
+import wandb
 from dotenv import load_dotenv
 from google.cloud import run_v2
 
