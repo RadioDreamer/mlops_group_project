@@ -129,6 +129,7 @@ steps:
     entrypoint: "gcloud"
     secretEnv: ["WANDB_API_KEY"]
     args:
+      - "beta"
       - "run"
       - "deploy"
       - "fake-art-api"
