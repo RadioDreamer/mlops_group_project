@@ -175,6 +175,12 @@ def test(ctx: Context) -> None:
     _run(ctx, "uv run coverage report -m -i")
 
 
+@task
+def frontend(ctx: Context) -> None:
+    """Start frontend application using the local network backend"""
+    _run(ctx, "streamlit run src/fakeartdetector/frontend.py")
+
+
 @task(
     help={
         "checkpoint": "Override checkpoint path (defaults to cfg.evaluate.model_checkpoint)",
