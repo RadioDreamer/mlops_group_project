@@ -58,7 +58,7 @@ dev = [
     "mkdocs==1.6.1",
     "pre-commit==4.5.1",
     "pytest==9.0.2",
-    "ruff==0.14.11",
+    "ruff==0.14.13",
     "mkdocstrings-python==1.12.2",
     "ty>=0.0.9",
     "locust>=2.43.1",
