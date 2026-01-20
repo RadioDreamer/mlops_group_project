@@ -103,8 +103,15 @@ def train_impl(cfg: DictConfig, print_config: bool = False) -> None:
 
     num_workers_cfg = hparams.get("num_workers", None)
     if num_workers_cfg is None:
-        cpu_count = os.cpu_count() or 0
-        num_workers = min(7, max(0, cpu_count - 1))
+        try:
+            # This might be needed in the Cloud Run
+            available_cores = len(os.sched_getaffinity(0))
+        except AttributeError:
+            # Fallback for local
+            available_cores = os.cpu_count() or 1
+
+        # Cap at 4 since the process overhead is high for this small dataset
+        num_workers = min(4, max(0, available_cores - 1))
     else:
         num_workers = int(num_workers_cfg)
 
