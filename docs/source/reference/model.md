@@ -1,4 +1,4 @@
-# `fakeartdetector.model`
+# `Model`
 
 This module defines the CNN used for classifying images from the CIFAKE dataset.
 
@@ -33,6 +33,6 @@ logits = model(images).squeeze(1)
 loss = model.criterium(logits, targets.float())
 ```
 
-## API reference
+## Model reference
 
 ::: fakeartdetector.model.FakeArtClassifier

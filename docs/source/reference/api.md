@@ -1,3 +1,3 @@
-# `fakeartdetector.api`
+# `Api`
 
 ::: fakeartdetector.api

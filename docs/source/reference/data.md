@@ -1,4 +1,4 @@
-# `fakeartdetector.data`
+# `Data`
 
 This module contains the data preprocessing entrypoint for the CIFAKE dataset and small utilities for loading/visualizing the processed tensors.
 

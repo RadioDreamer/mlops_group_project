@@ -1,4 +1,4 @@
-# `fakeartdetector.visualize`
+# `Visualize`
 
 This module creates a 2D visualization of learned embeddings from a trained model on the CIFAKE test split.
 
