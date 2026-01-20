@@ -70,7 +70,7 @@ def _sort_and_limit_models(models: list[dict], limit: int = 10) -> list[dict]:
 def get_backend_url():
     """Get the URL of the backend service."""
     # Check environment variable first
-    return "http://127.0.0.1:8000"
+    # return "http://127.0.0.1:8000"
 
     env_backend = os.environ.get("BACKEND") or os.environ.get("BACKEND_URL")
     if env_backend:
