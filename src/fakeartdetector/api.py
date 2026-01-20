@@ -228,12 +228,14 @@ def list_inference_log_files():
                 size = os.path.getsize(full)
             except OSError:
                 size = None
-            files.append({
-                "name": name,
-                "path": full,
-                "size_bytes": size,
-                "size_human": _human_size(size) if isinstance(size, int) else None,
-            })
+            files.append(
+                {
+                    "name": name,
+                    "path": full,
+                    "size_bytes": size,
+                    "size_human": _human_size(size) if isinstance(size, int) else None,
+                }
+            )
 
     return {"directory": dir_path, "files": files}
 
