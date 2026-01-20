@@ -1,7 +1,6 @@
-from pathlib import Path
 import os
-import time
 import shutil
+import time
 from contextlib import asynccontextmanager
 from http import HTTPStatus
 from io import BytesIO
@@ -11,14 +10,14 @@ from typing import cast
 import torchvision.transforms as T  # noqa:N812
 import wandb
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, Query, UploadFile, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, File, Query, UploadFile
 from google.cloud import storage
-from fakeartdetector.sqlite_db import init_db, insert_row
 from PIL import Image
 from torch import Tensor, cuda, device, load, no_grad, sigmoid, unsqueeze
 from torch.backends import mps
 
 from fakeartdetector.model import FakeArtClassifier
+from fakeartdetector.sqlite_db import init_db, insert_row
 
 
 def download_model(bucket_name, source_blob_name, destination_file_name):
@@ -75,6 +74,7 @@ def load_model_wandb(artifact_path):
 
     return FakeArtClassifier.load_from_checkpoint(full_ckpt_path)
 
+
 def add_to_database(
     latency: float,
     embedding: float,
@@ -86,7 +86,6 @@ def add_to_database(
         print(f"Inserted row into sqlite db id={row_id}")
     except Exception as e:
         print(f"Error inserting row into sqlite db: {e}")
-    
 
 
 @asynccontextmanager
@@ -99,7 +98,7 @@ async def lifespan(app: FastAPI):
     DEVICE = device("cuda" if cuda.is_available() else "mps" if mps.is_available() else "cpu")
     print(f"Using device: {DEVICE}")
     # Initialize sqlite database for inference logs
-    db_path = os.getenv("SQLITE_DB_PATH", "inference_logs.db")
+    db_path = os.getenv("SQLITE_DB_PATH", "data/inference_logs/inference_logs.db")
     try:
         init_db(db_path)
         print(f"Initialized sqlite DB at: {db_path}")
