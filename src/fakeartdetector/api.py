@@ -14,6 +14,8 @@ from fastapi import BackgroundTasks, FastAPI, File, Query, UploadFile
 from fastapi.responses import FileResponse
 from google.cloud import storage
 from PIL import Image
+from prometheus_client import Histogram
+from prometheus_fastapi_instrumentator import Instrumentator
 from torch import Tensor, cuda, device, load, no_grad, sigmoid, unsqueeze
 from torch.backends import mps
 
@@ -176,6 +178,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+instrumentator = Instrumentator().instrument(app).expose(app)
+request_latency = Histogram("prediction_latency_seconds", "Prediction latency in seconds")
 
 
 # ------------------------------------------ GET ------------------------------------------
@@ -360,11 +364,12 @@ async def model_inference(data: UploadFile = File(...), background_tasks: Backgr
 
     image_bytes = await data.read()
     img = await image_clean_utility(image_bytes)
-    with no_grad():
-        embeddings = model.classifier(model.backbone(img))
-        logits: Tensor = model.head(embeddings)
-        prob = sigmoid(logits)
-        is_ai = (prob > 0.5).item()
+    with request_latency.time():
+        with no_grad():
+            embeddings = model.classifier(model.backbone(img))
+            logits: Tensor = model.head(embeddings)
+            prob = sigmoid(logits)
+            is_ai = (prob > 0.5).item()
 
     background_tasks.add_task(
         add_to_database,
