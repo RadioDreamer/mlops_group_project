@@ -1,4 +1,4 @@
-# fakeartdetector
+# FakeArtDetector
 
 An MLOps project for classifying images as **Real** vs **AI-generated** using the CIFAKE dataset.
 

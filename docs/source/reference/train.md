@@ -1,4 +1,4 @@
-# Training
+# `Training`
 
 Training is driven by Hydra configs and executed with PyTorch Lightning's `pl.Trainer`, exposed via an Invoke task + Typer CLI.
 

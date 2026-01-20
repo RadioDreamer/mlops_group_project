@@ -1,4 +1,4 @@
-# `fakeartdetector.evaluate`
+# `Evaluate`
 
 This module evaluates a saved model checkpoint on the CIFAKE test split.
 

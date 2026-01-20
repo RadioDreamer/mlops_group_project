@@ -40,9 +40,15 @@ nav:
   - Getting Started: getting-started.md
   - Workflows: workflows.md
   - API Reference:
-      - fakeartdetector.data: reference/data.md
-      - fakeartdetector.model: reference/model.md
-      - fakeartdetector.train: reference/train.md
-      - fakeartdetector.api: reference/api.md
-      - fakeartdetector.evaluate: reference/evaluate.md
-      - fakeartdetector.visualize: reference/visualize.md
+      - Data: reference/data.md
+      - Model: reference/model.md
+      - Train: reference/train.md
+      - Api: reference/api.md
+      - Evaluate: reference/evaluate.md
+      - Visualize: reference/visualize.md
+      - Frontend: reference/frontend.md
+      - ONNX Export: reference/onnx.md
+      - Evidently Reports: reference/evidently.md
+      - Tests: reference/tests.md
+      - Configs: reference/configs.md
+      - Tasks & Invocations: reference/tasks_invocations.md
