@@ -1,31 +1,31 @@
 steps:
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Build Training Image"
-    args:
-      [
-        "build",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest",
-        "-f",
-        "./dockerfiles/train.dockerfile",
-        ".",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Build Training Image"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:latest",
+  #       "-f",
+  #       "./dockerfiles/train.dockerfile",
+  #       ".",
+  #     ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Build Evaluation Image"
-    args:
-      [
-        "build",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
-        "-t",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest",
-        "-f",
-        "./dockerfiles/evaluate.dockerfile",
-        ".",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Build Evaluation Image"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
+  #       "-t",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:latest",
+  #       "-f",
+  #       "./dockerfiles/evaluate.dockerfile",
+  #       ".",
+  #     ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Build API Image"
@@ -42,20 +42,34 @@ steps:
       ]
 
   - name: "gcr.io/cloud-builders/docker"
-    id: "Push Training Image"
+    id: "Build Frontend Image"
     args:
       [
-        "push",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+        "build",
+        "-t",
+        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA",
+        "-t",
+        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:latest",
+        "-f",
+        "./dockerfiles/frontend.dockerfile",
+        ".",
       ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    id: "Push Evaluation Image"
-    args:
-      [
-        "push",
-        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
-      ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Push Training Image"
+  #   args:
+  #     [
+  #       "push",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA",
+  #     ]
+
+  # - name: "gcr.io/cloud-builders/docker"
+  #   id: "Push Evaluation Image"
+  #   args:
+  #     [
+  #       "push",
+  #       "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA",
+  #     ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Push API Image"
@@ -65,46 +79,55 @@ steps:
         "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/api-image:$SHORT_SHA",
       ]
 
-  - name: "gcr.io/cloud-builders/gsutil"
-    id: "Download Data"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        mkdir -p /workspace/data/processed
-
-        echo "Listing Bucket Contents:"
-        gsutil ls gs://mlops_bucket_group_77/data/processed/
-
-        gsutil -m cp -r "gs://mlops_bucket_group_77/data/processed/*" /workspace/data/processed/
-
-        echo "Listing Workspace Contents after download:"
-        ls -R /workspace/data
-
-  - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
-    id: "Run Training"
-    args: ["--dataset", "cloud", "--experiment", "cloud"]
-    secretEnv: ["WANDB_API_KEY"]
-    env:
-      - "WANDB_PROJECT=fake-art-detection"
-      - "WANDB_ENTITY=mlops_DTU_77"
-
-  - name: "gcr.io/cloud-builders/gsutil"
-    id: "Upload Model"
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push Frontend Image"
     args:
       [
-        "cp",
-        "/workspace/model.pth",
-        "gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth",
+        "push",
+        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA",
       ]
 
-  - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA"
-    id: "Run Evaluation"
-    args: ["--dataset", "cloud"]
+  # - name: "gcr.io/cloud-builders/gsutil"
+  #   id: "Download Data"
+  #   entrypoint: "bash"
+  #   args:
+  #     - "-c"
+  #     - |
+  #       mkdir -p /workspace/data/processed
+
+  #       echo "Listing Bucket Contents:"
+  #       gsutil ls gs://mlops_bucket_group_77/data/processed/
+
+  #       gsutil -m cp -r "gs://mlops_bucket_group_77/data/processed/*" /workspace/data/processed/
+
+  #       echo "Listing Workspace Contents after download:"
+  #       ls -R /workspace/data
+
+  # - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/training-image:$SHORT_SHA"
+  #   id: "Run Training"
+  #   args: ["--dataset", "cloud", "--experiment", "cloud"]
+  #   secretEnv: ["WANDB_API_KEY"]
+  #   env:
+  #     - "WANDB_PROJECT=fake-art-detection"
+  #     - "WANDB_ENTITY=mlops_DTU_77"
+
+  # - name: "gcr.io/cloud-builders/gsutil"
+  #   id: "Upload Model"
+  #   args:
+  #     [
+  #       "cp",
+  #       "/workspace/model.pth",
+  #       "gs://mlops_bucket_group_77/models/model-$SHORT_SHA.pth",
+  #     ]
+
+  # - name: "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/eval-image:$SHORT_SHA"
+  #   id: "Run Evaluation"
+  #   args: ["--dataset", "cloud"]
 
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy API"
     entrypoint: "gcloud"
+    secretEnv: ["WANDB_API_KEY"]
     args:
       - "run"
       - "deploy"
@@ -121,11 +144,60 @@ steps:
       - "--cpu"
       - "1"
       - "--set-env-vars"
-      - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth"
+      - "GCS_BUCKET_NAME=mlops_bucket_group_77,MODEL_FILE=models/model-$SHORT_SHA.pth,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT,MODEL_NAME=mlops_DTU_77/fake-art-detection/model-d14oblh0:v0"
+      - "--set-secrets"
+      - "WANDB_API_KEY=wandb-api-key:latest"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Deploy Frontend"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "fake-art-frontend"
+      - "--image"
+      - "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA"
+      - "--region"
+      - "$_REGION"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--memory"
+      - "2Gi"
+      - "--cpu"
+      - "1"
+      - "--set-env-vars"
+      - "WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Deploy Frontend"
+    entrypoint: "bash"
+    secretEnv: ["WANDB_API_KEY"]
+    args:
+      - "-c"
+      - |
+        set -euo pipefail
+
+        API_URL=$(gcloud run services describe fake-art-api \
+          --region "$_REGION" \
+          --format='value(status.url)')
+
+        echo "Deploying frontend with BACKEND_URL=${API_URL}"
+
+        gcloud run deploy fake-art-frontend \
+          --image "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/frontend-image:$SHORT_SHA" \
+          --region "$_REGION" \
+          --platform managed \
+          --allow-unauthenticated \
+          --memory "1Gi" \
+          --cpu "1" \
+          --set-env-vars "BACKEND_URL=${API_URL},WANDB_API_KEY=$$WANDB_API_KEY,WANDB_ENTITY=$_WANDB_ENTITY,WANDB_PROJECT=$_WANDB_PROJECT"
 
 substitutions:
   _REGION: "europe-west1"
   _REPO_NAME: "group-77-project"
+  _WANDB_PROJECT: "fake-art-detection"
+  _WANDB_ENTITY: "mlops_DTU_77"
 
 availableSecrets:
   secretManager:
