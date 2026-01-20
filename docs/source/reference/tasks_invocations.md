@@ -226,6 +226,48 @@ inv push --message "fix: update README"
 
 ---
 
+## Automatic task API reference
+
+The sections below use mkdocstrings to embed the `tasks.py` function docstrings directly. This keeps the reference in-sync with the source and surfaces the function signature and docstring for each Invoke task.
+
+::: tasks.preprocess_data
+
+::: tasks.startapi
+
+::: tasks.train
+
+::: tasks.train_help
+
+::: tasks.list_configs
+
+::: tasks.list_precisions
+
+::: tasks.tensorboard
+
+::: tasks.test
+
+::: tasks.frontend
+
+::: tasks.evaluate
+
+::: tasks.visualize
+
+::: tasks.docker_build
+
+::: tasks.docker_build_api
+
+::: tasks.dvc
+
+::: tasks.pull_data
+
+::: tasks.build_docs
+
+::: tasks.serve_docs
+
+::: tasks.make_req_txt
+
+::: tasks.push
+
 If you'd like, I can also:
 
 - Add this page to the MkDocs `nav` automatically.

@@ -24,3 +24,13 @@ This project uses a `configs/` directory to hold YAML configuration files used b
 ```bash
 python src/fakeartdetector/train.py --config configs/default_config.yaml
 ```
+
+You can also run the same behaviour via the project's Invoke task (recommended for consistent `uv` usage):
+
+```bash
+uv sync
+uv sync --dev
+uv run invoke train --config-name default_config.yaml
+```
+
+Note: `--config-name` refers to the top-level YAML filename (not a path). The referenced file lives at [configs/default_config.yaml](configs/default_config.yaml) in the repository.
