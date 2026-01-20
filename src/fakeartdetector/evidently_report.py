@@ -1,12 +1,12 @@
 import base64
 import os
-import evidently
-import pandas as pd
 from sqlite3 import connect
-from evidently.legacy.report import Report
-from evidently.legacy.metric_preset import DataDriftPreset
 
 import numpy as np
+import pandas as pd
+from evidently.legacy.metric_preset import DataDriftPreset
+from evidently.legacy.report import Report
+
 
 def normalize_for_json(df: pd.DataFrame) -> pd.DataFrame:
     def normalize(x):
@@ -37,8 +37,9 @@ def generate_evidently_report(db_path: str, out_html: str, reference_n: int = 10
     report.save_html(out_html)
     return out_html
 
+
 if __name__ == "__main__":
-    out =generate_evidently_report(
+    out = generate_evidently_report(
         db_path="data/inference_logs/inference_logs.db",
         out_html="data/evidently_reports/evidently_report.html",
     )
