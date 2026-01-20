@@ -70,7 +70,9 @@ def _sort_and_limit_models(models: list[dict], limit: int = 10) -> list[dict]:
 def get_backend_url():
     """Get the URL of the backend service."""
     # Check environment variable first
-    # return "http://127.0.0.1:8000"
+    if os.environ.get("USE_LOCAL"):
+        print("Using local backend for development")
+        return "http://127.0.0.1:8000"
 
     env_backend = os.environ.get("BACKEND") or os.environ.get("BACKEND_URL")
     if env_backend:
@@ -144,6 +146,41 @@ def switch_model_on_backend_api(backend: str, model_path: str):
         return {"success": False, "error": f"HTTP {response.status_code}"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+def get_inference_log_files(backend: str):
+    """Fetch list of files in the inference logs directory from the backend."""
+    try:
+        backend = (backend or "").strip().strip('"').strip("'")
+        backend = backend.rstrip("/")
+        url = f"{backend}/inference-logs/files"
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            return resp.json()
+        return {"error": f"HTTP {resp.status_code}", "text": resp.text}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def download_db_from_backend(backend: str):
+    """Download the sqlite DB file from the backend and return bytes and filename."""
+    try:
+        backend = (backend or "").strip().strip('"').strip("'")
+        backend = backend.rstrip("/")
+        url = f"{backend}/download-db"
+        resp = requests.get(url, timeout=30)
+        if resp.status_code == 200:
+            # Try to infer filename from headers or fallback
+            disp = resp.headers.get("content-disposition", "")
+            fn = None
+            if "filename=" in disp:
+                fn = disp.split("filename=")[-1].strip('"')
+            if not fn:
+                fn = "inference_logs.db"
+            return {"ok": True, "bytes": resp.content, "filename": fn}
+        return {"ok": False, "status": resp.status_code, "text": resp.text}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
 def main() -> None:
@@ -234,6 +271,37 @@ def main() -> None:
     else:
         st.sidebar.warning("No models found (showing default model).")
         selected_model_path = None
+
+    # ---- Inference logs controls ----
+    st.sidebar.title("Inference Logs")
+
+    if st.sidebar.button("List inference log files"):
+        with st.spinner("Fetching inference log files..."):
+            files_info = get_inference_log_files(backend)
+        if files_info is None:
+            st.sidebar.error("Failed to get files info")
+        elif files_info.get("error"):
+            st.sidebar.error(f"Error: {files_info.get('error')}")
+            st.sidebar.text(files_info.get("text", ""))
+        else:
+            files = files_info.get("files", [])
+            if not files:
+                st.sidebar.info("No files found in inference logs directory.")
+            else:
+                # show a small table in the sidebar
+                df_files = pd.DataFrame(files)
+                st.sidebar.table(df_files[["name", "size_bytes", "size_human"]])
+
+    if st.sidebar.button("Download DB file"):
+        with st.spinner("Downloading DB from backend..."):
+            res = download_db_from_backend(backend)
+        if not res.get("ok"):
+            st.sidebar.error(f"Failed to download DB: {res.get('error') or res.get('status')}")
+        else:
+            db_bytes = res.get("bytes")
+            filename = res.get("filename") or "inference_logs.db"
+            st.sidebar.success(f"Downloaded {filename} ({len(db_bytes)} bytes)")
+            st.sidebar.download_button("Save DB file", data=db_bytes, file_name=filename, mime="application/x-sqlite3")
 
     uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 

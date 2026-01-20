@@ -62,7 +62,7 @@ def test_model_inference_comprehensive(client):
     # 1. TEST SUCCESSFUL INFERENCE + PREPROCESSING VERIFICATION
     with patch("fakeartdetector.api.model") as mock_model:
         # Mock return value (logit)
-        mock_model.return_value = torch.tensor([[10.0]])
+        mock_model.head.return_value = torch.tensor([[10.0]])
 
         # Create a red 100x100 image (to verify resizing logic)
         img = Image.new("RGB", (100, 100), color="red")
@@ -75,7 +75,7 @@ def test_model_inference_comprehensive(client):
         assert response.status_code == 200
         assert response.json()["isAI"] is True
 
-        args, kwargs = mock_model.call_args
+        args, kwargs = mock_model.backbone.call_args
         passed_tensor = args[0]
 
         assert isinstance(passed_tensor, torch.Tensor)
