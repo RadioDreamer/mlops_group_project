@@ -148,7 +148,7 @@ s253532, s250379, s242966, s242964
 >
 > Answer:
 
---- question 3 fill here ---
+We have used to open-source package `datasets` from the Hugging Face ecosystem, that enabled us to easily access the dataset we ended up using for our project.
 
 ## Coding environment
 
@@ -168,7 +168,8 @@ s253532, s250379, s242966, s242964
 >
 > Answer:
 
---- question 4 fill here ---
+We have decided to use `uv` to manage our Python dependencies. For a new member to replicate our environment, they would have to install `uv` on their machine of choice, 
+activate the environment using `source <env_name>/bin/activate` then run the `uv sync` command. Additionally, we have utilized a few environmental variables, which could be stored in a local `.env` file. If they are using a different operating system, and they want to replicate another person's development environment, then it would involve additional work. However, through the use of Dockerfiles, we ensured that the behaviour of our application can be reliably replicated on the Cloud.
 
 ### Question 5
 
