@@ -234,8 +234,7 @@ These concepts matter since they help to create a more transparent and consisten
 > _application but also ... ._
 >
 > Answer:
-
-TODO: TAMAS
+> In total, we implemented 44 tests covering unit, integration, and performance levels. We validated our core logic through unit tests for data loading, model architecture, training, and evaluation. For the API, we implemented integration tests to verify endpoint functionality and model inference. These included negative test cases for corrupted images and missing files to ensure reliability. Finally, we performed load testing using the Locust framework to measure performance metrics, specifically average response time, 99th percentile latency, and requests per second under peak conditions.
 
 ### Question 8
 
@@ -306,7 +305,7 @@ Overall, DVC provided reliable remote storage on GCP, and made experiment inputs
 
 We relied on a variety of continuous tests for our development workflows. Firstly, we have created unit tests that were ensuring the correctness of the invidiual units in our architecture. This involved tests for the data, the model and the API of our application.
 These workflows ran on `ubuntu-latest`, `windows-latest`, `macos-latest` with both Python 3.11 and 3.12. Our environment for testing mimicked the one used in development. Thus, we utilized `uv` to install our packages and we used the `enable-cache: true` option to significantly speed up the process. For linting, we have leveraged `pre-commit`. Our configuration combined ruff's code checker and formatter alongside the vanilla pre-commit hooks. Moreover, we have added a check that automatically verified the format of the PR title. We used the format of Conventional Commits. This was important since in our workflow, each PR got merged into main with the PR title and description (since we also relied on squash-and-merge). We have also added a custom workflow that got triggered anytime a model in wandb got aliased with the keyword "staging". All of these integrations enabled us to safely extend our application and guarantee a good performance for our model.
-An example of a triggered workflow can be seen [here](https://github.com/RadioDreamer/mlops_group_project/actions/runs/21116725049).
+An example of a triggered workflow can be seen ![here](https://github.com/RadioDreamer/mlops_group_project/actions/runs/21116725049).
 
 ## Running code and tracking experiments
 
@@ -497,6 +496,10 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 We made our api with the use of the FastApi framework.
 
 We made endpoints with get and post methods for checking what model is loaded, for inference by sending images, health chekcing, available 'local' models, ability to fetch models from the wandb registry, ability to switch models dynamically from the options from wandb registry, ability to check inference log database (made with squlite), and also download them on demand, for analysis locally. Everything is dynamically fetched on load with the lifespan asynccontextmanager
+
+We also added Prometheus instrumentation using the Instrumentator and a custom Histogram to monitor prediction latency and a background task using BackgroundTasks to log every prediction, with embeddings and probabilities, into a SQLite database without delaying the client's response.
+
+The API also supports dynamic model updates through a /switch-model endpoint that can pull new versions directly from the W&B registry.
 Please check the documentation by running `uv run invoke serve-docs` or call the /docs endpoint on our API, or simply check our ghpages.
 
 ### Question 24
@@ -513,7 +516,9 @@ Please check the documentation by running `uv run invoke serve-docs` or call the
 >
 > Answer:
 
-We were successfull on making and deloying our API to the cloud. We started locally and afterwards, made a docker image. And also made a yaml file, a trigger (on cloudbuild) to make the deploying of our new api features a piece of cake. you can either invoke the backend and the frontend locally by making the `USE_LOCAL` variable to true, which controls which backend we connect to (even locally) with local variables. (check the `.env` file) and then use it, or just do the api and use
+We were successfull on making and deloying our API to the cloud. We started locally and afterwards, made a docker image. And also made a yaml file, a trigger (on cloudbuild) to make the deploying of our new api features a piece of cake.
+
+You can either invoke the backend and the frontend locally by making the `USE_LOCAL` variable to true, which controls which backend we connect to (even locally) with local variables. (check the `.env` file) and then use it, or just do the api and use
 
 ```bash
 curl -X POST "http://localhost:8000/model/" \
@@ -535,7 +540,7 @@ Please check the documentation by running `uv run invoke serve-docs`
 >
 > Answer:
 
-TODO TAMAS
+We performed unit, integration, and load testing to ensure API reliability and performance. For unit testing, we used Pytest and FastAPI’s TestClient to validate endpoints. By patching the global model instance, we bypassed complex Lightning/Trainer dependencies, allowing us to verify that image preprocessing correctly transforms inputs into the required $(1, 3, 32, 32)$ tensor format. These tests also confirmed robust error handling for edge cases, such as missing files (422) and corrupted image data. For load testing, we used Locust to simulate 100 concurrent users with a ramp-up rate of 10 users per second. The API processed 6,113 requests with zero failures, maintaining a median response time of 12ms and a 99th percentile latency of only 70ms. The system achieved a peak throughput of 39 requests per second. This indicates that our inference pipeline is well optimized.
 
 ### Question 26
 
@@ -624,8 +629,13 @@ Our general setup is our local setup. We push to git on our feature branch, with
 >
 > Answer:
 
-Our biggest challenge in the project was successfully setting up the full deployment using `cloudbuild.yaml` file. There were a couple issues until we landed on the final iteration of our pipeline. In the beginning we spent a lot of time refining the configuration and that meant doing the training over and over again (since we have chosen to keep the training as part of the Cloud Build pipeline). Afterwards, we also had an issue with secrets, but it turned to be because of an extra whitespace in or WANDB API key.
-We also faced difficulties when we tried to expose our API and we had to once extend the Memory of our deployment container. Afterwards, we had the to track down why we were using so much Credits, thankfully we found out rather quickly by analysing the Billing report and going through all the SKUs. Finally, our last effort that didn't succeed was setting up SLOs for our custom Prometheus metrics. We have unsuccessfully tried using the multicontainer approach found in the `gcloud beta run` command. Afterwards we also tried adding the sidecar container using the kubernetes configuration provided. However, we ran out of time while trying to make it work.
+Our biggest challenge in the project was successfully setting up the full deployment using `cloudbuild.yaml` file.
+
+There were a couple issues until we landed on the final iteration of our pipeline. In the beginning we spent a lot of time refining the configuration and that meant doing the training over and over again (since we have chosen to keep the training as part of the Cloud Build pipeline). Afterwards, we also had an issue with secrets, but it turned to be because of an extra whitespace in or WANDB API key.
+
+We also faced difficulties when we tried to expose our API and we had to once extend the Memory of our deployment container. Afterwards, we had the to track down why we were using so much Credits, thankfully we found out rather quickly by analysing the Billing report and going through all the SKUs.
+
+Finally, our last effort that didn't succeed was setting up SLOs for our custom Prometheus metrics. We have unsuccessfully tried using the multicontainer approach found in the `gcloud beta run` command. Afterwards we also tried adding the sidecar container using the kubernetes configuration provided. However, we ran out of time while trying to make it work.
 
 ### Question 31
 
@@ -646,5 +656,7 @@ We also faced difficulties when we tried to expose our API and we had to once ex
 Student s242964 was in charge of creating the repository, adding pre-commit hooks (ruff, pr title), adding typer and hydra to the interface of our application, integrating Codecov, adding Cloud triggers and the `cloudbuild.yaml` configuration file as well as adding custom Prometheus metrics and setting up SLOs for the GCP project.
 
 Student s250379 was in charge of creating the project structure with cookiecutter, filling out the data model, model.py and the training. Took care of Docs, comments in code, tasks (for invokes), wrighting configuration files for hydra use (also made the custom wrapper to keep hydra and typer without issues). Implemented pytorch lighting, training logging and profiling. Integrated DVC with personal HPC account and later with a GCP bucket. Made the backend api and the frontend. Tried ONNX but did not get to deploy (but fully works locally). Made optimizations for a the data loading. Deployed docs to ghpages.
+
+Student s242966 was responsible for the development of the core model architecture and training scripts, which was later refined by student s250379. Implementing functional testing using Pytest; setting up the performance benchmarking infrastructure using Locust to measure system throughput and latency; implementing automated DVC-pull testing within the CI/CD pipeline.
 
 We have used LLMs to help us debug a lot of issues related to cloud deployment and also to bridge the knowledge gap required to connect certain concepts within the ML and MLOPS ecosystem (e.g usage of GCP Cloud Build `/workspace` directory). We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
