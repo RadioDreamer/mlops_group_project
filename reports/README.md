@@ -386,7 +386,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
---- question 17 fill here ---
+Our list of GCP services was the following: Bucket, Run, Artifact Registry and Cloud Build. We have used Bucket to store our data, Run to deploy our API and frontend, Artifact Registry to store our built docker containers and Cloud Build to debug our `cloudbuild.yaml` configuration.
 
 ### Question 18
 
@@ -401,7 +401,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
---- question 18 fill here ---
+We have ended up not using the Compute Engine service of GCP. Since our dataset was small, and training took very short time (even on a CPU), we have managed to utilize Cloud Build to faciliate all parts of the MLOPS pipeline. However, if we had to rely on GPUs, this would have been a necessary transition.
 
 ### Question 19
 
