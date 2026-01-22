@@ -459,9 +459,9 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
-We successfully implemented a functional API using the FastAPI framework to serve our art detection model. The application uses a lifespan context manager to load the model once during startup and perform cleanup, such as deleting the model object, upon shutdown. The loading logic is robust, checking multiple sources in a specific priority: local paths, Weights & Biases (W&B) artifacts, and Google Cloud Storage (GCS) buckets.
+We implemented an API using FastAPI. The application uses a lifespan context manager to load the model once during startup and perform cleanup at shutdown. The loading logic is checking multiple sources in the following order: local paths, Weights & Biases (W&B) artifacts, and Google Cloud Storage (GCS) buckets.
 A special feature of our implementation is the image_clean_utility, which asynchronously processes raw image bytes by converting them to RGB, resizing them to $32 \times 32$, and transforming them into tensors for inference.
-We also integrated Prometheus instrumentation using the Instrumentator and a custom Histogram to monitor prediction latency and a background task using BackgroundTasks to log every prediction, including embeddings and probabilities, into a SQLite database without delaying the client's response. The API also supports dynamic model updates through a /switch-model endpoint that can pull new versions directly from the W&B registry.
+We also added Prometheus instrumentation using the Instrumentator and a custom Histogram to monitor prediction latency and a background task using BackgroundTasks to log every prediction, with embeddings and probabilities, into a SQLite database without delaying the client's response. The API also supports dynamic model updates through a /switch-model endpoint that can pull new versions directly from the W&B registry.
 
 ### Question 24
 
@@ -477,13 +477,13 @@ We also integrated Prometheus instrumentation using the Instrumentator and a cus
 >
 > Answer:
 
-We deployed our API by containerizing it with Docker, ensuring a consistent runtime environment. Our api.dockerfile utilizes a multi-stage-like setup starting from a python3.12-bookworm-slim image and uses the uv package manager to install dependencies defined in uv.lock and pyproject.toml. The Dockerfile exposes the necessary port and copies the source code, models, and configurations into the image.
+We deployed our API with Docker, ensuring a consistent runtime environment. Our api.dockerfile has a multi-stage-like setup starting from a python3.12-bookworm-slim image and uses the uv package manager to install dependencies defined in uv.lock and pyproject.toml. The Dockerfile exposes the necessary port and copies the source code, models, and configurations into the image.
 
-The service is invoked locally by running the container and serving the app via Uvicorn. Users can interact with the API using a cURL command to send image data to the /model/ endpoint:
+The service is invoked locally by running the container and via Uvicorn. Users interact with the API using a cURL command to send image data to the /model/ endpoint:
 
 curl -X POST "http://localhost:8000/model/" -F "data=@path_to_image.jpg"
 
-The API returns a JSON response containing the isAI boolean and the model's confidence probability. For additional transparency, we exposed endpoints such as /model-info to verify the active model source and device, as well as /inference-logs/files to monitor the internal SQLite database state. The containerized structure is designed to be compatible with serverless cloud platforms like Google Cloud Run.
+The API returns a JSON response containing the isAI boolean and the model's confidence probability. We added endpoints such as /model-info to verify the active model source and device, as well as /inference-logs/files to monitor the internal SQLite database state. The containerized structure is designed to be compatible with serverless cloud platforms like Google Cloud Run.
 
 ### Question 25
 
@@ -498,7 +498,7 @@ The API returns a JSON response containing the isAI boolean and the model's conf
 >
 > Answer:
 
-We performed comprehensive unit, integration, and load testing to ensure API reliability and performance. For unit testing, we utilized the Pytest framework and FastAPI’s TestClient to validate core endpoints. By patching the global model instance, we bypassed complex Lightning/Trainer dependencies, allowing us to verify that image preprocessing correctly transforms inputs into the required $(1, 3, 32, 32)$ tensor format. These tests also confirmed robust error handling for edge cases, such as missing files (422) and corrupted image data. For load testing, we used Locust to simulate  100 concurrent users with a ramp-up rate of 10 users per second. The API processed 6,113 requests with zero failures, maintaining a median response time of 12ms and a 99th percentile latency of only 70ms. The system achieved a peak throughput of 39 requests per second. This indicates that our inference pipeline is well optimized.
+We performed unit, integration, and load testing to ensure API reliability and performance. For unit testing, we used Pytest and FastAPI’s TestClient to validate endpoints. By patching the global model instance, we bypassed complex Lightning/Trainer dependencies, allowing us to verify that image preprocessing correctly transforms inputs into the required $(1, 3, 32, 32)$ tensor format. These tests also confirmed robust error handling for edge cases, such as missing files (422) and corrupted image data. For load testing, we used Locust to simulate 100 concurrent users with a ramp-up rate of 10 users per second. The API processed 6,113 requests with zero failures, maintaining a median response time of 12ms and a 99th percentile latency of only 70ms. The system achieved a peak throughput of 39 requests per second. This indicates that our inference pipeline is well optimized.
 
 ### Question 26
 
