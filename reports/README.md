@@ -109,12 +109,12 @@ will check the repositories and the code to verify your answers.
 
 ### Extra
 
-- [ ] Write some documentation for your application (M32)
-- [ ] Publish the documentation to GitHub Pages (M32)
+- [x] Write some documentation for your application (M32)
+- [x] Publish the documentation to GitHub Pages (M32)
 - [ ] Revisit your initial project description. Did the project turn out as you wanted?
-- [ ] Create an architectural diagram over your MLOps pipeline
+- [x] Create an architectural diagram over your MLOps pipeline
 - [ ] Make sure all group members have an understanding about all parts of the project
-- [ ] Uploaded all your code to GitHub
+- [x] Uploaded all your code to GitHub
 
 ## Group information
 
@@ -188,7 +188,17 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
-We have actually used all the folders in the provided cookiecutter template, and also added even more files and configurations as the project started growing. things like enviroment files, and aso yaml files and outputs and a folder called staged_model_dir and .\*ignore files. But we deleted the notebooks folder.
+We used the cookiecutter template as the starting point and filled out the main folders to create a complete, production-oriented project.
+Key additions and completions include:
+
+- `src/` (data ingestion, model, training, API and utilities)
+- `configs/` (Hydra experiment and environment YAMLs)
+- `dockerfiles/` (training, evaluation, API, frontend)
+- `docs/` (user and developer documentation)
+- `tests/` (unit tests and CI)
+- `outputs/` for experiment artifacts.
+
+We also added environment files, extra YAML variants for different runs, a `staged_model_dir/` for checkpoints, and appropriate ignore rules (`.gitignore` and a `.dvcignore`). The only deliberate deviation was removing the example `notebooks/` folder to keep the repository focused on reproducible scripts, CLI interfaces, and containerized workflows suitable for CI/CD and deployment.
 
 ### Question 6
 
@@ -271,7 +281,13 @@ Yes, we have strictly relied on using branches and pull requests to manage our c
 >
 > Answer:
 
-At the start I started using HPCs personal folder as a version control directory, because there was a problem with setting up the google drive folder. In the end we managed to use GCP Buckets for versioning of our data. It was not needed for out case since we did not have any mutating data, but provided valuable insights.
+At the start we used an HPC personal folder as a remote storage while resolving cloud access issues, and later migrated to a DVC workflow backed by a Google Cloud Storage bucket. We tracked raw datasets and processed artifacts with `dvc add`, committed the small `.dvc` metafiles to Git, and pushed large files to the GCP remote using `dvc push`.
+This kept the Git history small while making data versions explicit and reproducible.
+
+Although our dataset size and workflow did not require frequent data updates (since we were pulling from a ready-made dataset), DVC proved valuable for reproducibility and also CI.
+CI jobs can run `dvc pull` to retrieve the exact data for a run, and experiment artifacts are tied to both Git commits and DVC metadata.
+
+Overall, DVC provided reliable remote storage on GCP, and made experiment inputs auditable and shareable across the team.
 
 ### Question 11
 
@@ -372,7 +388,15 @@ Our docker images can be found [here](https://console.cloud.google.com/artifacts
 >
 > Answer:
 
-Todo: Ioannis/Eric
+Thankfully most of our bugs had a very descriptive trace since we made sure to follow best practices and type our code.
+
+We used a layered debugging approach: structured logging and clear exception traces (helped by typing) caught many issues early, unit tests and CI prevented regressions, and NO interactive debugging (`pdb` or the VS Code debugger) was used for deeper inspection.
+
+Dependency and environment problems were reproduced inside Docker and traced via CI logs to isolate version mismatches (But also some packages locally as we saw throughut the course).
+
+For performance, we added profiling configurations under `configs/profiler` and ran PyTorch's profiler and lightweight Python profilers to identify hotspots in data loading and model forward passes.
+
+We exported the model to ONNX to measure inference latency and memory usage and to validate that optimized runtimes gave the expected speedups. Profiling results led to targeted fixes (tuning data-loader workers, caching preprocessing, and small model refactors) that improved throughput and reduced iteration time.
 
 ## Working in the cloud
 
@@ -389,7 +413,14 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
-Our list of GCP services was the following: Bucket, Run, Artifact Registry and Cloud Build. We have used Bucket to store our data, Run to deploy our API and frontend, Artifact Registry to store our built docker containers and Cloud Build to debug our `cloudbuild.yaml` configuration.
+Our list of GCP services was the following:
+
+- Cloud Bucket: General cloud storage, can be used for everything
+- Cloud Run: serves docker containers and can handle the networking (like amount of instances)
+- Artifact Registry: is where out docker images exist
+- Cloud Build: A single most important application for CI/CD with the ability to build images, containers and then deploy them to cloudrun (we also did training on it, but lightweight).
+
+We have used Bucket to store our data, Run to deploy our API and frontend, Artifact Registry to store our built docker containers and Cloud Build to debug our `cloudbuild.yaml` configuration.
 
 ### Question 18
 
@@ -404,7 +435,7 @@ Our list of GCP services was the following: Bucket, Run, Artifact Registry and C
 >
 > Answer:
 
-We have ended up not using the Compute Engine service of GCP. Since our dataset was small, and training took very short time (even on a CPU), we have managed to utilize Cloud Build to faciliate all parts of the MLOPS pipeline. During our experimentation, we spun up an `e2-standard-4` instance. However, if we had to rely on GPUs, this would have been a necessary transition. We have enabled GPUs through Quota requests, so we would have only had to create a VM instance with GPU enabled, then add it to an ai job inside our `cloudbuild.yaml` configuration file.
+We have ended up not using the Compute Engine service of GCP. Since our dataset was small, and training took very short time (even on a CPU), we have managed to utilize Google Cloud Build to faciliate all parts of the MLOPS pipeline. During our experimentation, we spun up an `e2-standard-4` instance. However, if we had to rely on GPUs, this would have been a necessary transition. We have enabled GPUs through Quota requests, so we would have only had to create a VM instance with GPU enabled, then add it to an ai job inside our `cloudbuild.yaml` configuration file.
 
 ### Question 19
 
@@ -413,7 +444,7 @@ We have ended up not using the Compute Engine service of GCP. Since our dataset 
 >
 > Answer:
 
-Our GCP bucket is displayed [here](figures/bucket.png).
+Our GCP bucket is displayed ![here](figures/bucket.png).
 
 ### Question 20
 
@@ -422,7 +453,7 @@ Our GCP bucket is displayed [here](figures/bucket.png).
 >
 > Answer:
 
-Our GCP artifact registry is shown [here](figures/registry.png).
+Our GCP artifact registry is shown ![here](figures/registry.png).
 
 ### Question 21
 
@@ -431,7 +462,7 @@ Our GCP artifact registry is shown [here](figures/registry.png).
 >
 > Answer:
 
-Our GCP cloud build history is found [here](figures/build.png).
+Our GCP cloud build history is found ![here](figures/build.png).
 
 ### Question 22
 
@@ -463,7 +494,10 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 23 fill here ---
+We made our api with the use of the FastApi framework.
+
+We made endpoints with get and post methods for checking what model is loaded, for inference by sending images, health chekcing, available 'local' models, ability to fetch models from the wandb registry, ability to switch models dynamically from the options from wandb registry, ability to check inference log database (made with squlite), and also download them on demand, for analysis locally. Everything is dynamically fetched on load with the lifespan asynccontextmanager
+Please check the documentation by running `uv run invoke serve-docs` or call the /docs endpoint on our API, or simply check our ghpages.
 
 ### Question 24
 
@@ -479,7 +513,14 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 24 fill here ---
+We were successfull on making and deloying our API to the cloud. We started locally and afterwards, made a docker image. And also made a yaml file, a trigger (on cloudbuild) to make the deploying of our new api features a piece of cake. you can either invoke the backend and the frontend locally by making the `USE_LOCAL` variable to true, which controls which backend we connect to (even locally) with local variables. (check the `.env` file) and then use it, or just do the api and use
+
+```bash
+curl -X POST "http://localhost:8000/model/" \
+-F "data=@cat.jpg"
+```
+
+Please check the documentation by running `uv run invoke serve-docs`
 
 ### Question 25
 
@@ -494,7 +535,7 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 25 fill here ---
+TODO TAMAS
 
 ### Question 26
 
@@ -509,7 +550,7 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 26 fill here ---
+We used inference logs, and also used evidently to analyze data drifting of our model. Other monitoring we used is metrics from GCP and prometheus, and Traces.
 
 ## Overall discussion of project
 
@@ -528,7 +569,15 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 27 fill here ---
+Most of the Google Cloud Platform activity was performed by s250379 and s242964.
+
+The largest cost was Cloud Storage: frequent pushes/pulls of datasets and artifacts during early development generated noticeable storage and egress costs.
+
+The second largest expense was Cloud Build (image builds and short training runs inside the pipeline), amplified by iterative debugging and rebuilding images many times.
+
+To reduce costs we introduced cached in CI, reduced unnecessary dataset transfers, and moved some training and experimentation back to local machines when possible. We also trimmed build frequency.
+
+Working in the cloud was very interesting and a great learning experience. Getting to see first hand about cloud deployment of out own code (artifact registries, Cloud Build and Cloud Run simplified CI/CD), highlighted the importance of cost-aware design: minimize data movement, use caching, enable billing alerts, and profile pipelines before scaling to larger VM or GPU instances.
 
 ### Question 28
 
@@ -561,7 +610,7 @@ We have added the Conventional Commits formatting and styling guide for our comm
 >
 > Answer:
 
---- question 29 fill here ---
+Our general setup is our local setup. We push to git on our feature branch, with precommit checks, and testing with github actions. On merge to main we trigger a build with cloudbuild.yaml, that builds a docker container and serves it to vloudrun. Our users can access the frontend and the API. We collect all inference logs in a database, that we can download through a button on the frontend. (we can also make a query to get the best model but we did not implement that, instead we implemented the switch model function from a selection of wandb models). ![overview](figures/overview.png)
 
 ### Question 30
 
@@ -595,5 +644,7 @@ We also faced difficulties when we tried to expose our API and we had to once ex
 > Answer:
 
 Student s242964 was in charge of creating the repository, adding pre-commit hooks (ruff, pr title), adding typer and hydra to the interface of our application, integrating Codecov, adding Cloud triggers and the `cloudbuild.yaml` configuration file as well as adding custom Prometheus metrics and setting up SLOs for the GCP project.
+
+Student s250379 was in charge of creating the project structure with cookiecutter, filling out the data model, model.py and the training. Took care of Docs, comments in code, tasks (for invokes), wrighting configuration files for hydra use (also made the custom wrapper to keep hydra and typer without issues). Implemented pytorch lighting, training logging and profiling. Integrated DVC with personal HPC account and later with a GCP bucket. Made the backend api and the frontend. Tried ONNX but did not get to deploy (but fully works locally). Made optimizations for a the data loading. Deployed docs to ghpages.
 
 We have used LLMs to help us debug a lot of issues related to cloud deployment and also to bridge the knowledge gap required to connect certain concepts within the ML and MLOPS ecosystem (e.g usage of GCP Cloud Build `/workspace` directory). We have relied on LLMs to generate some of our code, mostly for docs and other utilities.

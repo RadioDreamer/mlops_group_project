@@ -15,8 +15,6 @@ This project includes tools to export the trained PyTorch Lightning model to ONN
 python src/fakeartdetector/export_onnx.py --checkpoint ./staged_model_dir/model.ckpt --output model.onnx
 ```
 
-Note: there is no dedicated Invoke task for ONNX export at the moment — run the script directly as shown above, or I can add an `invoke` task if you prefer a consistent `inv` workflow.
-
 ## Notes & compatibility
 
 - Ensure the model is in evaluation mode prior to export.
