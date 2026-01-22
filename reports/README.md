@@ -389,13 +389,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
-- Cloud Run: serves/runs the docker containers
-- Cloud Build: pulls, builds the docker containers, and then deploys with CloudRun (it is basically a one-stop-shop for CI/CD)
-- Buckets: Generalized storage any type of project
-- Compute Engine: we can use for running VMs
-- VM Manager: we can use for serving operating systems, that we can ssh into and run or build or do whatever we want (it is a cloud desktop basically)
-- Networking: used that for limiting requests and instanses for lower cost
-- Artifact Registry: used for housing the docker images
+Our list of GCP services was the following: Bucket, Run, Artifact Registry and Cloud Build. We have used Bucket to store our data, Run to deploy our API and frontend, Artifact Registry to store our built docker containers and Cloud Build to debug our `cloudbuild.yaml` configuration.
 
 ### Question 18
 
@@ -410,7 +404,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
-We used our compute engine for Creating a VM that we sshed into, so we can use it to pull our github project and run our training. At the start we had difficulties with creating one with GPU support, so we ended up using a bit more time for training with cpus.
+We have ended up not using the Compute Engine service of GCP. Since our dataset was small, and training took very short time (even on a CPU), we have managed to utilize Cloud Build to faciliate all parts of the MLOPS pipeline. During our experimentation, we spun up an `e2-standard-4` instance. However, if we had to rely on GPUs, this would have been a necessary transition. We have enabled GPUs through Quota requests, so we would have only had to create a VM instance with GPU enabled, then add it to an ai job inside our `cloudbuild.yaml` configuration file.
 
 ### Question 19
 
@@ -419,7 +413,7 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 >
 > Answer:
 
---- question 19 fill here ---
+Our GCP bucket is displayed [here](figures/bucket.png).
 
 ### Question 20
 
@@ -428,7 +422,7 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 >
 > Answer:
 
---- question 20 fill here ---
+Our GCP artifact registry is shown [here](figures/registry.png).
 
 ### Question 21
 
@@ -437,7 +431,7 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 >
 > Answer:
 
---- question 21 fill here ---
+Our GCP cloud build history is found [here](figures/build.png).
 
 ### Question 22
 
@@ -452,7 +446,7 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 >
 > Answer:
 
---- question 22 fill here ---
+Our project did not ended up using Engine or Vertex AI for training. We have chosen a very small dataset (~100MB) and have chosen to use a model with a small amount of parameters. This enabled us to have the training as part of the Cloud Build pipeline, orchestrated by our `cloudbuild.yaml` file. Additionally, our original idea was to use pretrained models, which would have also avoided the need to train our model in the cloud. However, if we were to use the higher resolution version of the CIFAKE dataset (that the original paper contains), then this would be a necessary modification.
 
 ## Deployment
 
@@ -550,7 +544,7 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 >
 > Answer:
 
---- question 28 fill here ---
+We have added the Conventional Commits formatting and styling guide for our commits. This helped us unify our language and make our naming consistent through the project. We have also made it a mandatory check for all PRs.
 
 ### Question 29
 
@@ -581,7 +575,8 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 >
 > Answer:
 
---- question 30 fill here ---
+Our biggest challenge in the project was successfully setting up the full deployment using `cloudbuild.yaml` file. There were a couple issues until we landed on the final iteration of our pipeline. In the beginning we spent a lot of time refining the configuration and that meant doing the training over and over again (since we have chosen to keep the training as part of the Cloud Build pipeline). Afterwards, we also had an issue with secrets, but it turned to be because of an extra whitespace in or WANDB API key.
+We also faced difficulties when we tried to expose our API and we had to once extend the Memory of our deployment container. Afterwards, we had the to track down why we were using so much Credits, thankfully we found out rather quickly by analysing the Billing report and going through all the SKUs. Finally, our last effort that didn't succeed was setting up SLOs for our custom Prometheus metrics. We have unsuccessfully tried using the multicontainer approach found in the `gcloud beta run` command. Afterwards we also tried adding the sidecar container using the kubernetes configuration provided. However, we ran out of time while trying to make it work.
 
 ### Question 31
 
@@ -599,4 +594,6 @@ We used our compute engine for Creating a VM that we sshed into, so we can use i
 > _We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code._
 > Answer:
 
---- question 31 fill here ---
+Student s242964 was in charge of creating the repository, adding pre-commit hooks (ruff, pr title), adding typer and hydra to the interface of our application, integrating Codecov, adding Cloud triggers and the `cloudbuild.yaml` configuration file as well as adding custom Prometheus metrics and setting up SLOs for the GCP project.
+
+We have used LLMs to help us debug a lot of issues related to cloud deployment and also to bridge the knowledge gap required to connect certain concepts within the ML and MLOPS ecosystem (e.g usage of GCP Cloud Build `/workspace` directory). We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
