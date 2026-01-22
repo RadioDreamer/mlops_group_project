@@ -1,6 +1,8 @@
 # Tasks & Invocations
 
-This document explains how to use the project's Invoke tasks (the `tasks.py` file in the repository root). It lists every task, explains common options, and provides many examples and troubleshooting tips.
+This document explains how to use the project's Invoke tasks (the `tasks.py` file in the repository
+root). It lists every task, explains common options, and provides many examples and troubleshooting
+tips.
 
 Table of contents
 
@@ -40,16 +42,21 @@ The `inv` CLI invokes the tasks defined in `tasks.py`.
 
 ## How Invoke is used in this repo
 
-- `tasks.py` contains developer convenience tasks to run common workflows (training, evaluation, docs, docker builds, etc.).
-- The tasks generally forward options to the project's Typer/Hydra CLIs (e.g., `python -m fakeartdetector.train`) or call external tools (e.g., `docker`, `dvc`, `streamlit`).
-- Many tasks use the `uv run` prefix. `uv` is the project's packaging/runtime helper; if `uv` is not present in your environment, substitute the underlying command (e.g., run `python -m fakeartdetector.train` directly).
+- `tasks.py` contains developer convenience tasks to run common workflows (training, evaluation,
+  docs, docker builds, etc.).
+- The tasks generally forward options to the project's Typer/Hydra CLIs (e.g.,
+  `python -m fakeartdetector.train`) or call external tools (e.g., `docker`, `dvc`, `streamlit`).
+- Many tasks use the `uv run` prefix. `uv` is the project's packaging/runtime helper; if `uv` is not
+  present in your environment, substitute the underlying command (e.g., run
+  `python -m fakeartdetector.train` directly).
 
 ---
 
 ## Common patterns and environment notes
 
 - On macOS, `num_workers` for data loaders is often set to `0` to avoid multiprocessing issues.
-- Precision flags: the repo supports `32`, `bf16-mixed`, `bf16`, and `bf16-true` for training. Use `inv list_precisions` to see short descriptions.
+- Precision flags: the repo supports `32`, `bf16-mixed`, `bf16`, and `bf16-true` for training. Use
+  `inv list_precisions` to see short descriptions.
 - For local development of the API, use `inv startapi` and access `http://127.0.0.1:8000`.
 - To run the Streamlit frontend locally, use `inv frontend` (optionally `--browser True`).
 
@@ -82,8 +89,11 @@ inv startapi --host 0.0.0.0 --port 8000
 
 - `train`
   - Purpose: Launch the training CLI (`fakeartdetector.train`) which is Hydra/Typer-backed.
-  - Flags (selected): `--lr`, `--epochs`, `--batch-size`, `--num-workers`, `--precision`, `--profiler`, `--experiment`, `--dataset`, `--logging`, `--optimizer`, `--config-name`, `--print-config`.
-  - Precision options: `32`, `bf16-mixed`, `bf16`, `bf16-true`. Use `inv list_precisions` to see descriptions.
+  - Flags (selected): `--lr`, `--epochs`, `--batch-size`, `--num-workers`, `--precision`,
+    `--profiler`, `--experiment`, `--dataset`, `--logging`, `--optimizer`, `--config-name`,
+    `--print-config`.
+  - Precision options: `32`, `bf16-mixed`, `bf16`, `bf16-true`. Use `inv list_precisions` to see
+    descriptions.
   - Examples:
 
 ```bash
@@ -100,7 +110,8 @@ inv train-help
 ```
 
 - `list-configs`
-  - Purpose: List available config group options under `configs/` (experiment, dataset, logging, optimizer, profiler).
+  - Purpose: List available config group options under `configs/` (experiment, dataset, logging,
+    optimizer, profiler).
   - Example:
 
 ```bash
@@ -116,7 +127,8 @@ inv list-precisions
 ```
 
 - `tensorboard`
-  - Purpose: Start TensorBoard pointing to the project's `outputs` directory or another logs directory.
+  - Purpose: Start TensorBoard pointing to the project's `outputs` directory or another logs
+    directory.
   - Flags: `--logdir`, `--port`.
   - Example:
 
@@ -145,7 +157,8 @@ inv frontend --browser True
 
 - `evaluate`
   - Purpose: Run evaluation CLI (`fakeartdetector.evaluate`).
-  - Flags (selected): `--checkpoint`, `--batch-size`, `--threshold`, `--config-name`, `--dataset`, `--evaluate-cfg`, `--print-config`.
+  - Flags (selected): `--checkpoint`, `--batch-size`, `--threshold`, `--config-name`, `--dataset`,
+    `--evaluate-cfg`, `--print-config`.
   - Example:
 
 ```bash
@@ -154,7 +167,8 @@ inv evaluate --checkpoint outputs/latest/model.ckpt --batch-size 64
 
 - `visualize`
   - Purpose: Run embedding visualization CLI (`fakeartdetector.visualize`).
-  - Flags: `--checkpoint`, `--figure-name`, `--output-dir`, `--data-dir`, `--batch-size`, `--pca-*`, `--tsne-*`, `--seed`.
+  - Flags: `--checkpoint`, `--figure-name`, `--output-dir`, `--data-dir`, `--batch-size`, `--pca-*`,
+    `--tsne-*`, `--seed`.
   - Example:
 
 ```bash
@@ -199,7 +213,8 @@ inv make-req-txt
 ```
 
 - `push`
-  - Purpose: Add all changes, commit with a message, and push to the current branch (sets upstream if needed).
+  - Purpose: Add all changes, commit with a message, and push to the current branch (sets upstream
+    if needed).
   - Flags: `--message`.
   - Example:
 
@@ -211,16 +226,20 @@ inv push --message "fix: update README"
 
 ## Troubleshooting
 
-- If a task fails with `uv: command not found`, you can run the underlying command directly. For example, replace `uv run python -m fakeartdetector.train` with `python -m fakeartdetector.train`.
+- If a task fails with `uv: command not found`, you can run the underlying command directly. For
+  example, replace `uv run python -m fakeartdetector.train` with `python -m fakeartdetector.train`.
 - On macOS, if multiprocessing data loaders crash, set `--num-workers 0` when training.
-- If Docker builds fail on macOS with permissions, ensure you have the correct Docker context and resources.
-- If Streamlit doesn't open the browser, start it with `inv frontend --browser True` or open the displayed URL manually.
+- If Docker builds fail on macOS with permissions, ensure you have the correct Docker context and
+  resources.
+- If Streamlit doesn't open the browser, start it with `inv frontend --browser True` or open the
+  displayed URL manually.
 
 ---
 
 ## CI / Automation tips
 
-- Use `inv test --pattern tests/test_api.py` to run only a focused API test in CI for quick feedback.
+- Use `inv test --pattern tests/test_api.py` to run only a focused API test in CI for quick
+  feedback.
 - Use `inv make-req-txt` in a job that regenerates pinned requirements after dependency changes.
 - Use `inv build-docs` as a step to validate documentation builds before deployment.
 
@@ -228,47 +247,6 @@ inv push --message "fix: update README"
 
 ## Automatic task API reference
 
-The sections below use mkdocstrings to embed the `tasks.py` function docstrings directly. This keeps the reference in-sync with the source and surfaces the function signature and docstring for each Invoke task.
-
-::: tasks.preprocess_data
-
-::: tasks.startapi
-
-::: tasks.train
-
-::: tasks.train_help
-
-::: tasks.list_configs
-
-::: tasks.list_precisions
-
-::: tasks.tensorboard
-
-::: tasks.test
-
-::: tasks.frontend
-
-::: tasks.evaluate
-
-::: tasks.visualize
-
-::: tasks.docker_build
-
-::: tasks.docker_build_api
-
-::: tasks.dvc
-
-::: tasks.pull_data
-
-::: tasks.build_docs
-
-::: tasks.serve_docs
-
-::: tasks.make_req_txt
-
-::: tasks.push
-
-If you'd like, I can also:
-
-- Add this page to the MkDocs `nav` automatically.
-- Generate a short reference cheat-sheet (single page) for common day-to-day commands.
+The sections below use mkdocstrings to embed the `tasks.py` function docstrings directly. This keeps
+the reference in-sync with the source and surfaces the function signature and docstring for each
+Invoke task.
