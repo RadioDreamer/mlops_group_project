@@ -320,7 +320,8 @@ TODO: Ioannis
 >
 > Answer:
 
-TODO: Eric
+To prevent information loss and ensure reproducibility for every experiment, we created a pipeline based on the Hydra, Pytorch lighting and WandB modules. Every time we run a training session Hydra automatically saves the hyperparameters of the experiment ( learning rate, number of epochs, optimizer ecc) inside a config_full.yaml file, effectively creating a summarized record of the run. To ensure exact reproducibility we lock the randomness associated with the experiment (caused by the random weight initialization) by specifying a seed, which will also be part of the config_full.yaml file.
+Finally we use Wandb as our digital storage, by uploading the best models and all the activity logs, in this way every group member can reproduce any result by downloading the model artifact from WandB and run it with the saved Hydra configuration.
 
 ### Question 14
 
@@ -337,7 +338,8 @@ TODO: Eric
 >
 > Answer:
 
-TODO: Eric
+As we can see in the [first](figures/WandB_rep1.png) image, we used the WandB experiment tracking features to monitor the following metrics: Validation Loss (val_loss), Validation Accuracy (val_acc), Training Loss (train_loss_epoch) and Training Accuracy (train_acc_epoch). The evaluation of these quantities is critical in order to understand the model’ ability to effectively learn from the data and not just memorize it, therefore preventing overfitting. Ideally we want our model to have a relatively low training loss (so there is no risk of underfitting) and a relatively low validation loss (to avoid overfitting). We also monitored step-level metrics (train_acc_step and train_loss_step) to obtain some good insights about the stability of the optimization process for every epoch.
+The [second](figures/WandB_rep2.png) and [third](figures/WandB_rep3.png) images show the Hyperparameter Sweep that we conducted in order optimize the performances of our model. More precisely, we tracked the relationship between the batch size, the learning rate and the number of epochs with respect to the final validation loss. The process helped us understand how different combinations of the parameters impacted the final loss: we can observe how the second run shows a relatively worse performance compared to the first one, this forced the sweeping agent to narrow down the search space within the proximity of the first one.
 
 ### Question 15
 
@@ -368,7 +370,8 @@ Our docker images can be found [here](https://console.cloud.google.com/artifacts
 >
 > Answer:
 
-Todo: Ioannis/Eric
+To debug our project we used the Loguru library in order to record the code’s behaviour at each step: during every training session, Hydra created a new folder, which contained a train_hydra.log, that tracked the code program’s evolution. In this way, if something didn’t go as expected we could easily look at the .log file and find exactly what went wrong.
+Furthermore, we implemented profilers in our scripts, to see if the code was running as fast as possible. More precisely we used the AdvanceProfiler to obtain a summary that highlighted the functions that were slow and a PytorchProfiler to create visual charts inside Tensorboard.
 
 ## Working in the cloud
 
@@ -601,5 +604,7 @@ We also faced difficulties when we tried to expose our API and we had to once ex
 Student s242964 was in charge of creating the repository, adding pre-commit hooks (ruff, pr title), adding typer and hydra to the interface of our application, integrating Codecov, adding Cloud triggers and the `cloudbuild.yaml` configuration file as well as adding custom Prometheus metrics and setting up SLOs for the GCP project.
 
 Student s242966 was responsible for the development of the core model architecture and training scripts, which was later refined by student sXXXXXXX; implementing the API and functional testing using Pytest; setting up the performance benchmarking infrastructure using Locust to measure system throughput and latency; implementing automated DVC-pull testing within the CI/CD pipeline.
+
+Student s253532 created the dockerfiles for training and evaluating, and was responsible for the WandB integration, including the creation of the group, the project workspace, the model registry and the logging of the experiments’ artifacts. Additionally he built the automation routines that trigger model testing whenever the WandB registry is updated.
 
 We have used LLMs to help us debug a lot of issues related to cloud deployment and also to bridge the knowledge gap required to connect certain concepts within the ML and MLOPS ecosystem (e.g usage of GCP Cloud Build `/workspace` directory). We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
