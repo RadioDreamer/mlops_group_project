@@ -410,7 +410,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
---- question 19 fill here ---
+Our GCP bucket is displayed [here](figures/bucket.png).
 
 ### Question 20
 
@@ -419,7 +419,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
---- question 20 fill here ---
+Our GCP artifact registry is shown [here](figures/registry.png).
 
 ### Question 21
 
@@ -428,7 +428,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
---- question 21 fill here ---
+Our GCP cloud build history is found [here](figures/build.png).
 
 ### Question 22
 
@@ -443,7 +443,7 @@ Todo: Ioannis/Eric
 >
 > Answer:
 
---- question 22 fill here ---
+Our project did not ended up using Engine or Vertex AI for training. We have chosen a very small dataset (~100MB) and have chosen to use a model with a small amount of parameters. This enabled us to have the training as part of the Cloud Build pipeline, orchestrated by our `cloudbuild.yaml` file. Additionally, our original idea was to use pretrained models, which would have also avoided the need to train our model in the cloud. However, if we were to use the higher resolution version of the CIFAKE dataset (that the original paper contains), then this would be a necessary modification.
 
 ## Deployment
 
