@@ -610,7 +610,15 @@ We have added the Conventional Commits formatting and styling guide for our comm
 >
 > Answer:
 
-Our general setup is our local setup. We push to git on our feature branch, with precommit checks, and testing with github actions. On merge to main we trigger a build with cloudbuild.yaml, that builds a docker container and serves it to vloudrun. Our users can access the frontend and the API. We collect all inference logs in a database, that we can download through a button on the frontend. (we can also make a query to get the best model but we did not implement that, instead we implemented the switch model function from a selection of wandb models). ![overview](figures/overview.png)
+Answer:
+
+The diagram starts with our local development environment where team members implement features, run `train.py` for experiments, and use pre-commit hooks and unit tests to keep changes tidy. Development happens on feature branches and pull requests; GitHub Actions runs the CI checks (linting and tests) on PRs. When a PR is merged to `main`, Cloud Build (configured in `cloudbuild.yaml`) builds Docker images using the project's `Dockerfile`s, pushes the images to the container registry, and deploys the API and frontend to Cloud Run.
+
+The deployed system has two visible surfaces: the frontend (user interface) and the inference API (FastAPI). The API exposes endpoints for image inference, model management (selecting a different registered model), and log export. Model artifacts are produced by training runs (logged to Weights & Biases) and stored in the repository's model staging area and/or external storage; we implemented a model-switch UI that selects from available W&B artifacts rather than an automated best-model query.
+
+At inference time the API runs the chosen model and writes structured inference logs (prediction, input id, timestamp, model version, metrics) to our persistence layer. We store logs both as local files in `outputs/` and in a lightweight DB accessible via `sqlite_db.py`, allowing the frontend to download them with a single button. Experiment tracking and monitoring are available through W&B dashboards and Evidently reports (generated to `reports/figures`), which support drift detection and performance tracking.
+
+Summary flow: developer → PR (pre-commit + CI) → merge → Cloud Build → image registry → Cloud Run deploy → user requests → API inference → logs & telemetry → monitoring and model management. ![overview](figures/overview.png)
 
 ### Question 30
 
@@ -656,4 +664,4 @@ Student s242966 was responsible for the development of the core model architectu
 
 Student s253532 created the dockerfiles for training and evaluating, and was responsible for the WandB integration, including the creation of the group, the project workspace, the model registry and the logging of the experiments’ artifacts. Additionally he built the automation routines that trigger model testing whenever the WandB registry is updated.
 
-We have used LLMs to help us debug a lot of issues related to cloud deployment and also to brush up on and strenghten our understanding of the ML principles we had to adhere to      . We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
+We have used LLMs to help us debug a lot of issues related to cloud deployment and also to brush up on and strenghten our understanding of the ML principles we had to adhere to . We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
