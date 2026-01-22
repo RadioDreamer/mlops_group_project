@@ -952,6 +952,15 @@ wheels = [
 ]
 
 [[package]]
+name = "datadispatch"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/c9/2a1d98bf6a1e2ca41465dd77dc025d8a13b713c6d4378227c8938258c5d4/datadispatch-1.0.0.tar.gz", hash = "sha256:3c0456934e99f21137332deebbda05713dc07fcb142dfc01ef83d6b17aeaf08e", size = 1800, upload-time = "2018-12-25T16:33:55.509Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/6a/d38daeb232e560803057c202ada249c5f53a7d532eae216660af42a23781/datadispatch-1.0.0-py3-none-any.whl", hash = "sha256:527ad534881d7f6144a8ff643c260a3d2ae0d50e8ee24ec4b0fdae72d6c7beab", size = 2632, upload-time = "2018-12-25T16:33:53.37Z" },
+]
+
+[[package]]
 name = "datasets"
 version = "4.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1332,6 +1341,7 @@ dependencies = [
     { name = "pytorch-lightning" },
     { name = "scikit-learn" },
     { name = "streamlit" },
+    { name = "tasks" },
     { name = "tensorboard" },
     { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
     { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
@@ -1383,6 +1393,7 @@ requires-dist = [
     { name = "pytorch-lightning", specifier = ">=2.6.0" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
     { name = "streamlit", specifier = ">=1.53.0" },
+    { name = "tasks", specifier = ">=2.8.0" },
     { name = "tensorboard", specifier = ">=2.20.0" },
     { name = "torch", specifier = "==2.6.0", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchvision", specifier = ">=0.21.0", index = "https://download.pytorch.org/whl/cpu" },
@@ -5306,6 +5317,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ec/fe/802052aecb21e3797b8f7902564ab6ea0d60ff8ca23952079064155d1ae1/tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c", size = 81090, upload-time = "2022-10-06T17:21:48.54Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/40/44/4a5f08c96eb108af5cb50b41f76142f0afa346dfa99d5296fe7202a11854/tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f", size = 35252, upload-time = "2022-10-06T17:21:44.262Z" },
+]
+
+[[package]]
+name = "tasks"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datadispatch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e3/0c/885132ab9b854c90ebc724ef313268fc19fcc7fc0b4e480ce4e5486ca991/tasks-2.8.0.tar.gz", hash = "sha256:0f145014df82f27e965ed2453225fc6dca6430c4fb7492a819125de53f8657d0", size = 11141, upload-time = "2021-05-18T19:30:02.394Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/49/41e1583044973ec7f9bd172b66a8301a478a57d9238f41432cf588bd0ca9/tasks-2.8.0-py3-none-any.whl", hash = "sha256:94b6a20b2790717102e194d8ae2da5a84ee0cf509589f37d4192328237a9053a", size = 12464, upload-time = "2021-05-18T19:30:01.005Z" },
 ]
 
 [[package]]

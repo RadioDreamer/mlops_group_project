@@ -45,6 +45,7 @@ dependencies = [
     "pytorch-lightning>=2.6.0",
     "scikit-learn>=1.8.0",
     "streamlit>=1.53.0",
+    "tasks>=2.8.0",
     "tensorboard>=2.20.0",
     "torch==2.6.0",
     "torchvision>=0.21.0",
