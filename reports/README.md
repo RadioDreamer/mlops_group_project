@@ -285,7 +285,9 @@ TODO: Ioannis
 >
 > Answer:
 
---- question 11 fill here ---
+We relied on a variety of continuous tests for our development workflows. Firstly, we have created unit tests that were ensuring the correctness of the invidiual units in our architecture. This involved tests for the data, the model and the API of our application.
+These workflows ran on `ubuntu-latest`, `windows-latest`, `macos-latest` with both Python 3.11 and 3.12. Our environment for testing mimicked the one used in development. Thus, we utilized `uv` to install our packages and we used the `enable-cache: true` option to significantly speed up the process. For linting, we have leveraged `pre-commit`. Our configuration combined ruff's code checker and formatter alongside the vanilla pre-commit hooks. Moreover, we have added a check that automatically verified the format of the PR title. We used the format of Conventional Commits. This was important since in our workflow, each PR got merged into main with the PR title and description (since we also relied on squash-and-merge). We have also added a custom workflow that got triggered anytime a model in wandb got aliased with the keyword "staging". All of these integrations enabled us to safely extend our application and guarantee a good performance for our model.
+An example of a triggered workflow can be seen [here](https://github.com/RadioDreamer/mlops_group_project/actions/runs/21116725049). 
 
 ## Running code and tracking experiments
 
