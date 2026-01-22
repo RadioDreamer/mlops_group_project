@@ -168,7 +168,7 @@ We have used to open-source package `datasets` from the Hugging Face ecosystem, 
 >
 > Answer:
 
-We have decided to use `uv` to manage our Python dependencies. For a new member to replicate our environment, they would have to install `uv` on their machine of choice, 
+We have decided to use `uv` to manage our Python dependencies. For a new member to replicate our environment, they would have to install `uv` on their machine of choice,
 activate the environment using `source <env_name>/bin/activate` then run the `uv sync` command. Additionally, we have utilized a few environmental variables, which could be stored in a local `.env` file. If they are using a different operating system, and they want to replicate another person's development environment, then it would involve additional work. However, through the use of Dockerfiles, we ensured that the behaviour of our application can be reliably replicated on the Cloud.
 
 ### Question 5
@@ -200,9 +200,9 @@ TODO: IOANNIS
 >
 > Answer:
 
-For code quality and formatting, we have ended up using the tool `ruff`. We have added its check to our pre-commit configuration, so it ran for every commit and eventually PR that got merged in. 
-Additionally, we have added the following flags for our linting: `lint.select = ["I", "N", "E", "W", "F"]`. These flags enabled us to be PEP8 compliant. 
-We have also added typing and documentation to the most important part of our code, and how workflows can be formed using the different components. All of this can be found under the `docs` directory. 
+For code quality and formatting, we have ended up using the tool `ruff`. We have added its check to our pre-commit configuration, so it ran for every commit and eventually PR that got merged in.
+Additionally, we have added the following flags for our linting: `lint.select = ["I", "N", "E", "W", "F"]`. These flags enabled us to be PEP8 compliant.
+We have also added typing and documentation to the most important part of our code, and how workflows can be formed using the different components. All of this can be found under the `docs` directory.
 These concepts matter since they help to create a more transparent and consistent codebase. This help us to get familiar with the project faster and also give us guidance on how it can be extended.
 
 ## Version control
@@ -221,8 +221,7 @@ These concepts matter since they help to create a more transparent and consisten
 > *application but also ... .*
 >
 > Answer:
-
-TODO: TAMAS
+In total, we implemented 44 tests covering unit, integration, and performance levels. We validated our core logic through unit tests for data loading, model architecture, training, and evaluation. For the API, we implemented integration tests to verify endpoint functionality and model inference. These included negative test cases for corrupted images and missing files to ensure reliability. Finally, we performed load testing using the Locust framework to measure performance metrics, specifically average response time, 99th percentile latency, and requests per second under peak conditions.
 
 ### Question 8
 
@@ -287,7 +286,7 @@ TODO: Ioannis
 
 We relied on a variety of continuous tests for our development workflows. Firstly, we have created unit tests that were ensuring the correctness of the invidiual units in our architecture. This involved tests for the data, the model and the API of our application.
 These workflows ran on `ubuntu-latest`, `windows-latest`, `macos-latest` with both Python 3.11 and 3.12. Our environment for testing mimicked the one used in development. Thus, we utilized `uv` to install our packages and we used the `enable-cache: true` option to significantly speed up the process. For linting, we have leveraged `pre-commit`. Our configuration combined ruff's code checker and formatter alongside the vanilla pre-commit hooks. Moreover, we have added a check that automatically verified the format of the PR title. We used the format of Conventional Commits. This was important since in our workflow, each PR got merged into main with the PR title and description (since we also relied on squash-and-merge). We have also added a custom workflow that got triggered anytime a model in wandb got aliased with the keyword "staging". All of these integrations enabled us to safely extend our application and guarantee a good performance for our model.
-An example of a triggered workflow can be seen [here](https://github.com/RadioDreamer/mlops_group_project/actions/runs/21116725049). 
+An example of a triggered workflow can be seen [here](https://github.com/RadioDreamer/mlops_group_project/actions/runs/21116725049).
 
 ## Running code and tracking experiments
 
@@ -460,7 +459,9 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 23 fill here ---
+We successfully implemented a functional API using the FastAPI framework to serve our art detection model. The application uses a lifespan context manager to load the model once during startup and perform cleanup, such as deleting the model object, upon shutdown. The loading logic is robust, checking multiple sources in a specific priority: local paths, Weights & Biases (W&B) artifacts, and Google Cloud Storage (GCS) buckets.
+A special feature of our implementation is the image_clean_utility, which asynchronously processes raw image bytes by converting them to RGB, resizing them to $32 \times 32$, and transforming them into tensors for inference.
+We also integrated Prometheus instrumentation using the Instrumentator and a custom Histogram to monitor prediction latency and a background task using BackgroundTasks to log every prediction, including embeddings and probabilities, into a SQLite database without delaying the client's response. The API also supports dynamic model updates through a /switch-model endpoint that can pull new versions directly from the W&B registry.
 
 ### Question 24
 
@@ -476,7 +477,13 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 24 fill here ---
+We deployed our API by containerizing it with Docker, ensuring a consistent runtime environment. Our api.dockerfile utilizes a multi-stage-like setup starting from a python3.12-bookworm-slim image and uses the uv package manager to install dependencies defined in uv.lock and pyproject.toml. The Dockerfile exposes the necessary port and copies the source code, models, and configurations into the image.
+
+The service is invoked locally by running the container and serving the app via Uvicorn. Users can interact with the API using a cURL command to send image data to the /model/ endpoint:
+
+curl -X POST "http://localhost:8000/model/" -F "data=@path_to_image.jpg"
+
+The API returns a JSON response containing the isAI boolean and the model's confidence probability. For additional transparency, we exposed endpoints such as /model-info to verify the active model source and device, as well as /inference-logs/files to monitor the internal SQLite database state. The containerized structure is designed to be compatible with serverless cloud platforms like Google Cloud Run.
 
 ### Question 25
 
@@ -491,7 +498,7 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 25 fill here ---
+We performed comprehensive unit, integration, and load testing to ensure API reliability and performance. For unit testing, we utilized the Pytest framework and FastAPI’s TestClient to validate core endpoints. By patching the global model instance, we bypassed complex Lightning/Trainer dependencies, allowing us to verify that image preprocessing correctly transforms inputs into the required $(1, 3, 32, 32)$ tensor format. These tests also confirmed robust error handling for edge cases, such as missing files (422) and corrupted image data. For load testing, we used Locust to simulate  100 concurrent users with a ramp-up rate of 10 users per second. The API processed 6,113 requests with zero failures, maintaining a median response time of 12ms and a 99th percentile latency of only 70ms. The system achieved a peak throughput of 39 requests per second. This indicates that our inference pipeline is well optimized.
 
 ### Question 26
 
@@ -572,7 +579,7 @@ We have added the Conventional Commits formatting and styling guide for our comm
 >
 > Answer:
 
-Our biggest challenge in the project was successfully setting up the full deployment using `cloudbuild.yaml` file. There were a couple issues until we landed on the final iteration of our pipeline. In the beginning we spent a lot of time refining the configuration and that meant doing the training over and over again (since we have chosen to keep the training as part of the Cloud Build pipeline). Afterwards, we also had an issue with secrets, but it turned to be because of an extra whitespace in or WANDB API key. 
+Our biggest challenge in the project was successfully setting up the full deployment using `cloudbuild.yaml` file. There were a couple issues until we landed on the final iteration of our pipeline. In the beginning we spent a lot of time refining the configuration and that meant doing the training over and over again (since we have chosen to keep the training as part of the Cloud Build pipeline). Afterwards, we also had an issue with secrets, but it turned to be because of an extra whitespace in or WANDB API key.
 We also faced difficulties when we tried to expose our API and we had to once extend the Memory of our deployment container. Afterwards, we had the to track down why we were using so much Credits, thankfully we found out rather quickly by analysing the Billing report and going through all the SKUs. Finally, our last effort that didn't succeed was setting up SLOs for our custom Prometheus metrics. We have unsuccessfully tried using the multicontainer approach found in the `gcloud beta run` command. Afterwards we also tried adding the sidecar container using the kubernetes configuration provided. However, we ran out of time while trying to make it work.
 
 ### Question 31
@@ -592,5 +599,7 @@ We also faced difficulties when we tried to expose our API and we had to once ex
 > Answer:
 
 Student s242964 was in charge of creating the repository, adding pre-commit hooks (ruff, pr title), adding typer and hydra to the interface of our application, integrating Codecov, adding Cloud triggers and the `cloudbuild.yaml` configuration file as well as adding custom Prometheus metrics and setting up SLOs for the GCP project.
+
+Student s242966 was responsible for the development of the core model architecture and training scripts, which was later refined by student sXXXXXXX; implementing the API and functional testing using Pytest; setting up the performance benchmarking infrastructure using Locust to measure system throughput and latency; implementing automated DVC-pull testing within the CI/CD pipeline.
 
 We have used LLMs to help us debug a lot of issues related to cloud deployment and also to bridge the knowledge gap required to connect certain concepts within the ML and MLOPS ecosystem (e.g usage of GCP Cloud Build `/workspace` directory). We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
