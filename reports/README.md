@@ -541,7 +541,7 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 28 fill here ---
+We have added the Conventional Commits formatting and styling guide for our commits. This helped us unify our language and make our naming consistent through the project. We have also made it a mandatory check for all PRs.
 
 ### Question 29
 
@@ -572,7 +572,8 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 >
 > Answer:
 
---- question 30 fill here ---
+Our biggest challenge in the project was successfully setting up the full deployment using `cloudbuild.yaml` file. There were a couple issues until we landed on the final iteration of our pipeline. In the beginning we spent a lot of time refining the configuration and that meant doing the training over and over again (since we have chosen to keep the training as part of the Cloud Build pipeline). Afterwards, we also had an issue with secrets, but it turned to be because of an extra whitespace in or WANDB API key. 
+We also faced difficulties when we tried to expose our API and we had to once extend the Memory of our deployment container. Afterwards, we had the to track down why we were using so much Credits, thankfully we found out rather quickly by analysing the Billing report and going through all the SKUs. Finally, our last effort that didn't succeed was setting up SLOs for our custom Prometheus metrics. We have unsuccessfully tried using the multicontainer approach found in the `gcloud beta run` command. Afterwards we also tried adding the sidecar container using the kubernetes configuration provided. However, we ran out of time while trying to make it work.
 
 ### Question 31
 
@@ -590,4 +591,6 @@ Our project did not ended up using Engine or Vertex AI for training. We have cho
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+Student s242964 was in charge of creating the repository, adding pre-commit hooks (ruff, pr title), adding typer and hydra to the interface of our application, integrating Codecov, adding Cloud triggers and the `cloudbuild.yaml` configuration file as well as adding custom Prometheus metrics and setting up SLOs for the GCP project.
+
+We have used LLMs to help us debug a lot of issues related to cloud deployment and also to bridge the knowledge gap required to connect certain concepts within the ML and MLOPS ecosystem (e.g usage of GCP Cloud Build `/workspace` directory). We have relied on LLMs to generate some of our code, mostly for docs and other utilities.
