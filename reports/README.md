@@ -306,7 +306,7 @@ An example of a triggered workflow can be seen [here](https://github.com/RadioDr
 >
 > Answer:
 
---- question 12 fill here ---
+TODO: Ioannis
 
 ### Question 13
 
@@ -353,7 +353,8 @@ TODO: Eric
 >
 > Answer:
 
---- question 15 fill here ---
+We have relied on docker to create a containarized version of our application. It allows to reproducibly run the training and deployment on different operating systems and hardware architectures. We have created 4 dockerfiles. One for training the model, one for evaluating it, one for wrapping it into an API and one for deploying. We have used these dockerfiles as a cornerstone of our deployment in the Cloud. We have add the tasks `docker-build` and `docker-build-api` that take care of building our docker images, but of course the images can be built manually. All files can be found under the [dockerfiles](https://github.com/RadioDreamer/mlops_group_project/tree/main/dockerfiles) directory.
+Our docker images can be found [here](https://console.cloud.google.com/artifacts/docker/double-zenith-484209-d9/europe-west1/group-77-project?invt=AcHBDw&project=double-zenith-484209-d9).
 
 ### Question 16
 
@@ -368,7 +369,7 @@ TODO: Eric
 >
 > Answer:
 
---- question 16 fill here ---
+Todo: Ioannis/Eric
 
 ## Working in the cloud
 
