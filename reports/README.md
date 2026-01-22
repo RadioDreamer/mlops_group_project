@@ -185,7 +185,7 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 5 fill here ---
+TODO: IOANNIS
 
 ### Question 6
 
@@ -200,7 +200,10 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 6 fill here ---
+For code quality and formatting, we have ended up using the tool `ruff`. We have added its check to our pre-commit configuration, so it ran for every commit and eventually PR that got merged in. 
+Additionally, we have added the following flags for our linting: `lint.select = ["I", "N", "E", "W", "F"]`. These flags enabled us to be PEP8 compliant. 
+We have also added typing and documentation to the most important part of our code, and how workflows can be formed using the different components. All of this can be found under the `docs` directory. 
+These concepts matter since they help to create a more transparent and consistent codebase. This help us to get familiar with the project faster and also give us guidance on how it can be extended.
 
 ## Version control
 
@@ -219,7 +222,7 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 7 fill here ---
+TODO: TAMAS
 
 ### Question 8
 
@@ -234,7 +237,8 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 8 fill here ---
+Our code coverage at the moment of writing this report is 57.37%. We have integrated Codecov into our project, enabling us to analyse the historical coverage and also alert us if a change creates a large enough negative impact on our coverage. We have not decided to make this a mandatory check for our Pull Requests to pass, due to the lack of time to constantly keep up with our coverage for our new features.
+Having a 100% coverage does not necessarily mean that our code is error free. It simply means that all lines of code have been ran during the testing process.But the simple fact that all lines were ran does not cover the incredible large combination of states that these lines can be executed with. Thus a 100% coverage cannot (always) translate to an error free codebase.
 
 ### Question 9
 
@@ -249,7 +253,7 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 9 fill here ---
+Yes, we have strictly relied on using branches and pull requests to manage our collaboration. We have also set up GitHub branch protection rules for the `main` branch. This included not being able to directly commit to the branch, as well as only being able to merge commits through PRs. This workflow enabled us to work in a very clean and organized fashion. We have also utilized the fact that it is very easy to solve small merge conflicts through the GitHub UI when updating a development branch with a new commit coming from `main`. Also, all of our GitHub Action checks integrated perfectly into this setup.
 
 ### Question 10
 
@@ -264,7 +268,7 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 10 fill here ---
+TODO: Ioannis
 
 ### Question 11
 
@@ -315,7 +319,7 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 13 fill here ---
+TODO: Eric
 
 ### Question 14
 
@@ -332,7 +336,7 @@ activate the environment using `source <env_name>/bin/activate` then run the `uv
 >
 > Answer:
 
---- question 14 fill here ---
+TODO: Eric
 
 ### Question 15
 
