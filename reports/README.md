@@ -401,7 +401,7 @@ Our list of GCP services was the following: Bucket, Run, Artifact Registry and C
 >
 > Answer:
 
-We have ended up not using the Compute Engine service of GCP. Since our dataset was small, and training took very short time (even on a CPU), we have managed to utilize Cloud Build to faciliate all parts of the MLOPS pipeline. However, if we had to rely on GPUs, this would have been a necessary transition.
+We have ended up not using the Compute Engine service of GCP. Since our dataset was small, and training took very short time (even on a CPU), we have managed to utilize Cloud Build to faciliate all parts of the MLOPS pipeline. During our experimentation, we spun up an `e2-standard-4` instance. However, if we had to rely on GPUs, this would have been a necessary transition. We have enabled GPUs through Quota requests, so we would have only had to create a VM instance with GPU enabled, then add it to an ai job inside our `cloudbuild.yaml` configuration file.
 
 ### Question 19
 
