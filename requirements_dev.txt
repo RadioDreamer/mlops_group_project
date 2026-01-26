@@ -604,7 +604,7 @@ pymdown-extensions==10.20
     # via
     #   mkdocs-material
     #   mkdocstrings
-pyparsing==3.3.1
+pyparsing==3.3.2
     # via
     #   dvc
     #   grandalf
