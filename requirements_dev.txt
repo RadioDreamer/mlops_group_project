@@ -440,7 +440,7 @@ multiprocess==0.70.18
     # via datasets
 narwhals==2.15.0
     # via altair
-netron==8.8.3
+netron==8.8.6
     # via fakeartdetector
 networkx==3.6.1
     # via

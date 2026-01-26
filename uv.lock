@@ -3306,10 +3306,10 @@ wheels = [
 
 [[package]]
 name = "netron"
-version = "8.8.3"
+version = "8.8.6"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3b/00/4caee25e1a97ab33d2b154ac1bad539fa5ca91644da9ba3bdf2a2806c5fb/netron-8.8.3-py3-none-any.whl", hash = "sha256:d403e2a4e9aef33f918e1829757b43ce8c887f3ea245a6cf4ae0356309e7789e", size = 3203355, upload-time = "2026-01-16T16:11:34.158Z" },
+    { url = "https://files.pythonhosted.org/packages/10/b7/a81c7ee37b48b3abc087fb0bac8b8e8e3990c716cf3d9c01d899b32bad4a/netron-8.8.6-py3-none-any.whl", hash = "sha256:887e6144b65220042deb7419427377f3ae42e1e0860c2d6ae45d34b249656323", size = 3234644, upload-time = "2026-01-24T18:34:32.576Z" },
 ]
 
 [[package]]
