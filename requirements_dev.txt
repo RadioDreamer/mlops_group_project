@@ -697,7 +697,7 @@ ruamel-yaml==0.19.1
 ruff==0.14.13
 scikit-learn==1.8.0
     # via fakeartdetector
-scipy==1.16.3
+scipy==1.17.0
     # via scikit-learn
 scmrepo==3.6.1
     # via
