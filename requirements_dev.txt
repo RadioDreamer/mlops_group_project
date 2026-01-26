@@ -694,7 +694,7 @@ ruamel-yaml==0.19.1
     # via
     #   dvc
     #   gto
-ruff==0.14.13
+ruff==0.14.14
 scikit-learn==1.8.0
     # via fakeartdetector
 scipy==1.16.3
