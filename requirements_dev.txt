@@ -436,7 +436,7 @@ multidict==6.7.0
     # via
     #   aiohttp
     #   yarl
-multiprocess==0.70.18
+multiprocess==0.70.19
     # via datasets
 narwhals==2.15.0
     # via altair
